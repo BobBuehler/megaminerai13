@@ -32,9 +32,23 @@ class Bb
     public static BitArray OurHangars;
     public static BitArray TheirHangars;
 
+    public static BitArray OurSpawning;
+    public static BitArray TheirSpawning;
+
     private static AI ai;
     private static int size;
     private static int id;
+
+    private static BitArray[] allBoards = {   OurClaws, TheirClaws,
+                                              OurRepairers, TheirRepairers,
+                                              OurTurrets, TheirTurrets,
+                                              OurTerminators, TheirTerminators,
+                                              OurArchers, TheirArchers,
+                                              OurHackers, TheirHackers,
+                                              OurWalls, TheirWalls,
+                                              OurHangars, TheirHangars,
+                                              OurSpawning, TheirSpawning
+                                          };
 
     public static void Init(AI new_ai)
     {
@@ -66,6 +80,9 @@ class Bb
         TheirWalls = new BitArray(size);
         OurHangars = new BitArray(size);
         TheirHangars = new BitArray(size);
+
+        OurSpawning = new BitArray(size);
+        TheirSpawning = new BitArray(size);
     }
 
     public static int GetOffset(int x, int y)
@@ -80,33 +97,37 @@ class Bb
 
     public static void ReadBoard()
     {
-        OurClaws.SetAll(false);
-        TheirClaws.SetAll(false);
-        OurRepairers.SetAll(false);
-        TheirRepairers.SetAll(false);
-        OurTurrets.SetAll(false);
-        TheirTurrets.SetAll(false);
-        OurTerminators.SetAll(false);
-        TheirTerminators.SetAll(false);
-        OurArchers.SetAll(false);
-        TheirArchers.SetAll(false);
-        OurHackers.SetAll(false);
-        TheirHackers.SetAll(false);
-        OurWalls.SetAll(false);
-        TheirWalls.SetAll(false);
-        OurHangars.SetAll(false);
-        TheirHangars.SetAll(false);
-        OurUnits.SetAll(false);
-        TheirUnits.SetAll(false);
+        foreach (BitArray board in allBoards)
+        {
+            board.SetAll(false);
+        }
 
-        DroidLookup = AI.droids.ToDictionary(droid => new Point(droid.X, droid.Y));
-        
+        foreach (Tile tile in AI.tiles)
+        {
+            if (tile.TurnsUntilAssembled > 0)
+            {
+                int n = GetOffset(tile.ToPoint());
+                if (tile.Owner == id)
+                {
+                    OurSpawning.Set(n, true);
+                }
+                else
+                {
+                    TheirSpawning.Set(n, true);
+                }
+            }
+        }
+
+        DroidLookup.Clear();
+
         foreach (Droid droid in AI.droids)
         {
             Point p = new Point(droid.X, droid.Y);
             int n = GetOffset(p);
             bool isOurs = droid.Owner == id;
             bool isTheirs = !isOurs;
+
+            DroidLookup.Add(p, droid);
 
             switch ((Unit)droid.Variant)
             {
