@@ -34,11 +34,6 @@ public static class Extensions
         }
     }
 
-    public static Func<Point, bool> ToFunc(this BitArray bits)
-    {
-        return p => bits.Get(p);
-    }
-
     public static bool Get(this BitArray bits, int x, int y)
     {
         return bits.Get(Bb.GetOffset(x, y));
@@ -62,5 +57,41 @@ public static class Extensions
     public static Point ToPoint(this Mappable mappable)
     {
         return new Point(mappable.X, mappable.Y);
+    }
+
+    public static Func<Point, bool> ToFunc(this BitArray bits)
+    {
+        return p => bits.Get(p);
+    }
+
+    public static IEnumerable<Point> ToPoints(this BitArray bits)
+    {
+        for (int x = 0; x < Bb.Width; ++x)
+        {
+            for (int y = 0; y < Bb.Height; ++y)
+            {
+                if (bits.Get(x, y))
+                {
+                    yield return new Point(x, y);
+                }
+            }
+        }
+    }
+
+    public static BitArray ToBitArray(this IEnumerable<Point> points)
+    {
+        var bits = new BitArray(Bb.Width * Bb.Height);
+        points.ForEach(p => bits.Set(p, true));
+        return bits;
+    }
+
+    public static int ManhattanDistance(this Point source, Point target)
+    {
+        return Math.Abs(source.x - target.x) + Math.Abs(source.y + target.y);
+    }
+
+    public static bool IsInRange(this Droid attacker, Point target)
+    {
+        return attacker.Range >= attacker.ToPoint().ManhattanDistance(target);
     }
 }
