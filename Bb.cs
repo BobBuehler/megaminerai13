@@ -90,53 +90,58 @@ class Bb
         TheirWalls.SetAll(false);
         OurHangars.SetAll(false);
         TheirHangars.SetAll(false);
-
+        OurUnits.SetAll(false);
+        TheirUnits.SetAll(false);
+        
         foreach (Droid droid in AI.droids)
         {
             int x = droid.X;
             int y = droid.Y;
-            if (droid.Owner == id)
+            int n = GetOffset(x, y);
+            bool isOurs = droid.Owner == id;
+            bool isTheirs = !isOurs;
+
+            switch ((Unit)droid.Variant)
             {
-                // Ours
-                switch ((Unit)droid.Variant)
-                {
-                    case Unit.CLAW:
-                        if (droid.Owner == id)
-                        {
-                            
-                        }
-                        break;
-                    case Unit.ARCHER:
-                        break;
-                    case Unit.REPAIRER:
-                        break;
-                    case Unit.HACKER:
-                        break;
-                    case Unit.TURRET:
-                        break;
-                    case Unit.WALL:
-                        break;
-                    case Unit.TERMINATOR:
-                        break;
-                    case Unit.HANGAR:
-                        break;
-                    default:
-                        Console.WriteLine("Could not find variant: " + droid.Variant);
-                        break;
-                }
-            }
-            else
-            {
-                // Theirs
+                case Unit.CLAW:
+                    OurClaws.Set(n, isOurs);
+                    TheirClaws.Set(n, isTheirs);
+                    break;
+                case Unit.ARCHER:
+                    OurArchers.Set(n, isOurs);
+                    TheirArchers.Set(n, isTheirs);
+                    break;
+                case Unit.REPAIRER:
+                    OurRepairers.Set(n, isOurs);
+                    TheirRepairers.Set(n, isTheirs);
+                    break;
+                case Unit.HACKER:
+                    OurHackers.Set(n, isOurs);
+                    TheirHackers.Set(n, isTheirs);
+                    break;
+                case Unit.TURRET:
+                    OurTurrets.Set(n, isOurs);
+                    TheirTurrets.Set(n, isTheirs);
+                    break;
+                case Unit.WALL:
+                    OurWalls.Set(n, isOurs);
+                    TheirWalls.Set(n, isTheirs);
+                    break;
+                case Unit.TERMINATOR:
+                    OurTerminators.Set(n, isOurs);
+                    TheirTerminators.Set(n, isTheirs);
+                    break;
+                case Unit.HANGAR:
+                    OurHangars.Set(n, isOurs);
+                    TheirHangars.Set(n, isTheirs);
+                    break;
+                default:
+                    Console.WriteLine("Could not find variant: " + droid.Variant);
+                    break;
             }
         }
 
-        foreach (Tile tile in tiles)
-        {
-
-        }
-
-        OurUnits = OurClaws.Or(OurRepairers).Or(OurTurrets).Or(OurTerminators).Or(OurArchers).Or(OurHackers).Or(OurWalls).Or(OurHangars);
-        TheirUnits = TheirClaws.Or(TheirRepairers).Or(TheirTurrets).Or(TheirTerminators).Or(TheirArchers).Or(TheirHackers).Or(TheirWalls).Or(TheirHangars);
+        OurUnits.Or(OurClaws).Or(OurRepairers).Or(OurTurrets).Or(OurTerminators).Or(OurArchers).Or(OurHackers).Or(OurWalls).Or(OurHangars);
+        TheirUnits.Or(TheirClaws).Or(TheirRepairers).Or(TheirTurrets).Or(TheirTerminators).Or(TheirArchers).Or(TheirHackers).Or(TheirWalls).Or(TheirHangars);
     }
 }
