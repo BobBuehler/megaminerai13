@@ -39,16 +39,17 @@ class Bb
     private static int size;
     private static int id;
 
-    private static BitArray[] allBoards = {   OurClaws, TheirClaws,
-                                              OurRepairers, TheirRepairers,
-                                              OurTurrets, TheirTurrets,
-                                              OurTerminators, TheirTerminators,
-                                              OurArchers, TheirArchers,
-                                              OurHackers, TheirHackers,
-                                              OurWalls, TheirWalls,
-                                              OurHangars, TheirHangars,
-                                              OurSpawning, TheirSpawning
-                                          };
+    private static BitArray[] allBoards;
+    //= {   OurClaws, TheirClaws,
+    //                                          OurRepairers, TheirRepairers,
+    //                                          OurTurrets, TheirTurrets,
+    //                                          OurTerminators, TheirTerminators,
+    //                                          OurArchers, TheirArchers,
+    //                                          OurHackers, TheirHackers,
+    //                                          OurWalls, TheirWalls,
+    //                                          OurHangars, TheirHangars,
+    //                                          OurSpawning, TheirSpawning
+    //                                      };
 
     public static void Init(AI new_ai)
     {
@@ -83,6 +84,17 @@ class Bb
 
         OurSpawning = new BitArray(size);
         TheirSpawning = new BitArray(size);
+
+        allBoards = new[]{  OurClaws, TheirClaws,
+                            OurRepairers, TheirRepairers,
+                            OurTurrets, TheirTurrets,
+                            OurTerminators, TheirTerminators,
+                            OurArchers, TheirArchers,
+                            OurHackers, TheirHackers,
+                            OurWalls, TheirWalls,
+                            OurHangars, TheirHangars,
+                            OurSpawning, TheirSpawning
+                          };
     }
 
     public static int GetOffset(int x, int y)
