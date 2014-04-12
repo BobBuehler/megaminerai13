@@ -90,8 +90,33 @@ public static class Extensions
         return Math.Abs(source.x - target.x) + Math.Abs(source.y - target.y);
     }
 
-    public static bool IsInRange(this Droid attacker, Point target)
+    public static bool IsInRange(this Point source, int range, Point target)
     {
-        return attacker.Range >= attacker.ToPoint().ManhattanDistance(target);
+        return range >= source.ManhattanDistance(target);
+    }
+
+    public static bool IsInRange(this Droid droid, Point target)
+    {
+        return droid.ToPoint().IsInRange(droid.Range, target);
+    }
+
+    public static IEnumerable<Point> GetPointsInRange(this Point center, int range)
+    {
+        for (int y = center.y - range; y < center.y + range; ++y)
+        {
+            for (int x = center.x - range; x < center.x + range; ++x)
+            {
+                var p = new Point(x, y);
+                if (center.IsInRange(range, p))
+                {
+                    yield return p;
+                }
+            }
+        }
+    }
+
+    public static bool IsOnBoard(this Point point)
+    {
+        return point.x >= 0 && point.x < Bb.Width && point.y >= 0 && point.y < Bb.Height;
     }
 }

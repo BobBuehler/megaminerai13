@@ -43,7 +43,7 @@ public static class Solver
         {
             if (droid.MovementLeft == 0 || droid.IsInRange(targetPoint))
             {
-                return;
+                break;
             }
             droid.move(point.x, point.y);
         }
