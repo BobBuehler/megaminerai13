@@ -26,6 +26,14 @@ public static class Extensions
         return min;
     }
 
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+    {
+        foreach (var s in source)
+        {
+            action(s);
+        }
+    }
+
     public static Func<Point, bool> ToFunc(this BitArray bits)
     {
         return p => bits.Get(p);

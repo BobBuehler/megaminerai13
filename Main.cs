@@ -10,6 +10,9 @@ public class Program
         {
             System.Console.WriteLine("Please enter a hostname");
 
+            Bb.Width = 5;
+            Bb.Height = 5;
+
             var passable = new BitArray(new bool[] {
                 true, false, true, true, true,
                 true, false, true, true, true,
@@ -18,6 +21,18 @@ public class Program
                 true, true, true, true, true
             });
 
+            var start = new Point(0, 0);
+            var goal = new Point(2, 0);
+
+            var path = Pather.AStar(
+                new[] { start },
+                passable.ToFunc(),
+                p => p.Equals(goal),
+                (p1, p2) => p2.y == 0 ? 10 : 1,
+                p => 0);
+
+            path.ForEach(p => Console.WriteLine(p));
+            Console.WriteLine("Done");
 
             return;
         }

@@ -22,7 +22,7 @@ public struct Point
 
     public override int GetHashCode()
     {
-        return x + y * 40; // Bb.Width;
+        return x + y * Bb.Width;
     }
 
     public override string ToString()

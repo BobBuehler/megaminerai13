@@ -68,7 +68,6 @@ class Pather
             new Point(point.x, point.y + 1)
         };
 
-        return neighbors.Where(n => n.x >= 0 && n.y >= 0 && n.x < 40 && n.y < 20 && isPassable(n));
-        // WIDTH and HEIGHT
+        return neighbors.Where(n => n.x >= 0 && n.y >= 0 && n.x < Bb.Width && n.y < Bb.Height && isPassable(n));
     }
 }
