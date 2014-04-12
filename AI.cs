@@ -42,13 +42,31 @@ class AI : BaseAI
         return modelVariants[(int)u].Cost <= players[playerID()].ScrapAmount;
     }
 
+    private void TakeOutTurrets()
+    {
+        foreach (Point p in Bb.TheirTurrets.ToPoints())
+        {
+            if (CanAfford(Unit.CLAW) && IsSpawnable(p))
+            {
+                Console.WriteLine("Turn " + turnNumber() + ": Dropping Claw onto turret at (" + p.x + ", " + p.y + ")!");
+                players[playerID()].orbitalDrop(p.x, p.y, (int)Unit.CLAW);
+                Bb.ReadBoard();
+            }
+        }
+    }
+
     /// <summary>
     /// This function is called each time it is your turn.
     /// </summary>
     /// <returns>True to end your turn. False to ask the server for updated information.</returns>
     public override bool run()
     {
+        Console.WriteLine("Turn: " + turnNumber());
+        
         Bb.ReadBoard();
+        
+        TakeOutTurrets();
+
         //If spawned on the right
         if (playerID() == 1)
         {
@@ -64,117 +82,14 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
-        // Loop over our claws
-        
-        // If we aren't at an enemy hangar...
-            // If an enemy unit is in range...
-                // Attack it
-            
-        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirHangars);
-        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
+        Bb.ReadBoard();
 
-        /*
-        //loop through all of the droids
-        for (int i = 0; i < droids.Length; i++)
-        {
-            //if you have control of the droid
-            if ((droids[i].Owner == playerID() && droids[i].HackedTurnsLeft <= 0) ||
-               (droids[i].Owner != playerID() && droids[i].HackedTurnsLeft > 0))
-            {
-                //if there are any moves to be done
-                if (droids[i].MovementLeft > 0)
-                {
-                    //try to move towards the enemy
-                    int changeX = 1;
-                    //if on the right move towards the left
-                    if (playerID() == 1)
-                    {
-                        changeX = -1;
-                    }
-                    bool move = true;
-                    //check if there is a droid on that tile
-                    for (int z = 0; z < droids.Length; z++)
-                    {
-                        //if the two droids are different
-                        if (droids[z].Id != droids[i].Id)
-                        {
-                            //if there is a droid to run into
-                            if (droids[z].X == droids[i].X + changeX && droids[z].Y == droids[i].Y)
-                            {
-                                //don't move
-                                move = false;
-                            }
-                        }
-                    }
-                    //move if okay and within map boundaries
-                    if (move && droids[i].X + changeX >= 0 && droids[i].X + changeX < mapWidth())
-                    {
-                        droids[i].move(droids[i].X + changeX, droids[i].Y);
-                    }
-                }
-                //if there are any attacks left
-                if (droids[i].AttacksLeft > 0)
-                {
-                    //find a target towards the enemy
-                    int changeX = 1;
-                    //enemy is to the left if playerID is one
-                    if (playerID() == 1)
-                    {
-                        changeX = -1;
-                    }
-                    Droid target = null;
-                    for (int z = 0; z < droids.Length; z++)
-                    {
-                        //if the droid is there make it a target
-                        if (droids[z].X == droids[i].X + changeX && droids[z].Y == droids[i].Y && droids[z].HealthLeft > 0)
-                        {
-                            target = droids[z];
-                        }
-                    }
-                    //if a target was found
-                    if (target != null)
-                    {
-                        //repairer logic
-                        if (droids[i].Variant == (int)Unit.REPAIRER)
-                        {
-                            //only try to heal your units or hacked enemy units
-                            if ((target.Owner == playerID() && target.HackedTurnsLeft <= 0) ||
-                               (target.Owner != playerID() && target.HackedTurnsLeft > 0))
-                            {
-                                //heal the target
-                                droids[i].operate(target.X, target.Y);
-                            }
-                        }
-                        //hacker unit logic
-                        else if (droids[i].Variant == (int)Unit.HACKER)
-                        {
-                            //only operate on non-hacked enemy units
-                            if (target.Owner != playerID() && target.HackedTurnsLeft == 0)
-                            {
-                                //don't hack hangars or walls
-                                if (target.Variant != (int)Unit.HANGAR && target.Variant != (int)Unit.WALL)
-                                {
-                                    //hack the target
-                                    droids[i].operate(target.X, target.Y);
-                                }
-                            }
-                        }
-                        //other unit logic
-                        else
-                        {
-                            //only operate on hacked friendly units or enemy units
-                            if ((target.Owner == playerID() && target.HackedTurnsLeft > 0) ||
-                               (target.Owner != playerID() && target.HackedTurnsLeft <= 0))
-                            {
-                                //attack the target
-                                droids[i].operate(target.X, target.Y);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        */
+        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
+        Bb.ReadBoard();
+        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirUnits);
+        Bb.ReadBoard();
+
         return true;
     }
 
