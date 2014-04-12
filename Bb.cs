@@ -85,16 +85,18 @@ class Bb
         OurSpawning = new BitArray(size);
         TheirSpawning = new BitArray(size);
 
-        allBoards = new[]{  OurClaws, TheirClaws,
-                            OurRepairers, TheirRepairers,
-                            OurTurrets, TheirTurrets,
-                            OurTerminators, TheirTerminators,
-                            OurArchers, TheirArchers,
-                            OurHackers, TheirHackers,
-                            OurWalls, TheirWalls,
-                            OurHangars, TheirHangars,
-                            OurSpawning, TheirSpawning
-                          };
+        allBoards = new[]{
+            OurUnits, TheirUnits,
+            OurClaws, TheirClaws,
+            OurRepairers, TheirRepairers,
+            OurTurrets, TheirTurrets,
+            OurTerminators, TheirTerminators,
+            OurArchers, TheirArchers,
+            OurHackers, TheirHackers,
+            OurWalls, TheirWalls,
+            OurHangars, TheirHangars,
+            OurSpawning, TheirSpawning
+        };
     }
 
     public static int GetOffset(int x, int y)
@@ -141,6 +143,8 @@ class Bb
 
             DroidLookup.Add(p, droid);
 
+            OurUnits.Set(n, isOurs);
+            TheirUnits.Set(n, isTheirs);
             switch ((Unit)droid.Variant)
             {
                 case Unit.CLAW:
@@ -180,8 +184,5 @@ class Bb
                     break;
             }
         }
-
-        OurUnits.Or(OurClaws).Or(OurRepairers).Or(OurTurrets).Or(OurTerminators).Or(OurArchers).Or(OurHackers).Or(OurWalls).Or(OurHangars);
-        TheirUnits.Or(TheirClaws).Or(TheirRepairers).Or(TheirTurrets).Or(TheirTerminators).Or(TheirArchers).Or(TheirHackers).Or(TheirWalls).Or(TheirHangars);
     }
 }
