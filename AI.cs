@@ -23,7 +23,7 @@ class AI : BaseAI
 
   public override string username()
   {
-    return "Shell AI";
+    return "Needs Review";
   }
 
   public override string password()
