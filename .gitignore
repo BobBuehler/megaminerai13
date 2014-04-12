@@ -9,5 +9,7 @@ libclient.so
 *.exe
 *.gamelog
 *.glog
+*.user
+*.suo
 client
 !jna.jar

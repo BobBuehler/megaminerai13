@@ -40,6 +40,9 @@
     <Compile Include="..\..\BaseAI.cs">
       <Link>BaseAI.cs</Link>
     </Compile>
+    <Compile Include="..\..\Bb.cs">
+      <Link>Bb.cs</Link>
+    </Compile>
     <Compile Include="..\..\Client.cs">
       <Link>Client.cs</Link>
     </Compile>
@@ -58,12 +61,24 @@
     <Compile Include="..\..\ModelVariant.cs">
       <Link>ModelVariant.cs</Link>
     </Compile>
+    <Compile Include="..\..\Pather.cs">
+      <Link>Pather.cs</Link>
+    </Compile>
     <Compile Include="..\..\Player.cs">
       <Link>Player.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Point.cs">
+      <Link>Point.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Solver.cs">
+      <Link>Solver.cs</Link>
     </Compile>
     <Compile Include="..\..\Tile.cs">
       <Link>Tile.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
