@@ -87,7 +87,7 @@ public static class Extensions
 
     public static int ManhattanDistance(this Point source, Point target)
     {
-        return Math.Abs(source.x - target.x) + Math.Abs(source.y + target.y);
+        return Math.Abs(source.x - target.x) + Math.Abs(source.y - target.y);
     }
 
     public static bool IsInRange(this Droid attacker, Point target)

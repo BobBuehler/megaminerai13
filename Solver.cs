@@ -25,6 +25,10 @@ public static class Solver
         Func<Point, bool> patherPassable = p => p.Equals(attacker) || targets.Get(p) || passable(p);
 
         var path = Pather.AStar(new[] { attacker }, patherPassable, targets.ToFunc(), (p1, p2) => 1, p => 0);
+        if (!path.Any())
+        {
+            return;
+        }
 
         var targetPoint = path.Last();
         MoveUntilInRange(droid, targetPoint, path);
