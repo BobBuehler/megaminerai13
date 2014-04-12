@@ -2,11 +2,15 @@
 using System.Linq;
 using System.Text;
 using System.Collections;
+using System.Collections.Generic;
 
 class Bb
 {
     public static int Width;
     public static int Height;
+
+    public static Dictionary<Point, Droid> DroidLookup;
+    public static Dictionary<Point, Tile> TileLookup;
 
     public static BitArray OurUnits;
     public static BitArray TheirUnits;
@@ -30,7 +34,6 @@ class Bb
 
     private static AI ai;
     private static int size;
-    private static Tile[] tiles = AI.tiles;
     private static int id;
 
     public static void Init(AI new_ai)
@@ -40,6 +43,9 @@ class Bb
         Width = ai.mapWidth();
         Height = ai.mapHeight();
         size = Width * Height;
+
+        DroidLookup = new Dictionary<Point, Droid>();
+        TileLookup = AI.tiles.ToDictionary(t => new Point(t.X, t.Y));
 
         OurUnits = new BitArray(size);
         TheirUnits = new BitArray(size);
@@ -92,12 +98,13 @@ class Bb
         TheirHangars.SetAll(false);
         OurUnits.SetAll(false);
         TheirUnits.SetAll(false);
+
+        DroidLookup = AI.droids.ToDictionary(droid => new Point(droid.X, droid.Y));
         
         foreach (Droid droid in AI.droids)
         {
-            int x = droid.X;
-            int y = droid.Y;
-            int n = GetOffset(x, y);
+            Point p = new Point(droid.X, droid.Y);
+            int n = GetOffset(p);
             bool isOurs = droid.Owner == id;
             bool isTheirs = !isOurs;
 
