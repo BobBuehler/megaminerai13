@@ -21,10 +21,12 @@ public static class Solver
             return;
         }
 
-        Func<Point, bool> passable = p => !Bb.DroidLookup.ContainsKey(p);
-        Func<Point, bool> patherPassable = p => p.Equals(attacker) || targets.Get(p) || passable(p);
+        var liveTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
 
-        var path = Pather.AStar(new[] { attacker }, patherPassable, targets.ToFunc(), (p1, p2) => 1, p => 0);
+        Func<Point, bool> passable = p => !Bb.DroidLookup.ContainsKey(p);
+        Func<Point, bool> patherPassable = p => p.Equals(attacker) || liveTargets.Get(p) || passable(p);
+
+        var path = Pather.AStar(new[] { attacker }, patherPassable, liveTargets.ToFunc(), (p1, p2) => 1, p => 0);
         if (!path.Any())
         {
             return;
