@@ -58,4 +58,9 @@ public static class Extensions
     {
         bits.Set(p.x, p.y, value);
     }
+
+    public static Point ToPoint(this Mappable mappable)
+    {
+        return new Point(mappable.X, mappable.Y);
+    }
 }
