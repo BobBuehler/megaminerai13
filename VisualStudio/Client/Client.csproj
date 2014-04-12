@@ -52,6 +52,9 @@
     <Compile Include="..\..\ExistentialError.cs">
       <Link>ExistentialError.cs</Link>
     </Compile>
+    <Compile Include="..\..\Extensions.cs">
+      <Link>Extensions.cs</Link>
+    </Compile>
     <Compile Include="..\..\Main.cs">
       <Link>Main.cs</Link>
     </Compile>
