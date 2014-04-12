@@ -34,7 +34,7 @@ class AI : BaseAI
 
     private bool IsSpawnable(Point p)
     {
-        return !(Bb.OurUnits.Get(p) || Bb.TheirHangars.Get(p));
+        return !(Bb.OurUnits.Get(p) || Bb.TheirHangars.Get(p) || Bb.OurSpawning.Get(p) || Bb.TheirSpawning.Get(p));
     }
 
     private bool CanAfford(Unit u)
@@ -64,7 +64,14 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
-        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
+        // Loop over our claws
+        
+        // If we aren't at an enemy hangar...
+            // If an enemy unit is in range...
+                // Attack it
+            
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirHangars);
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
 
         /*
         //loop through all of the droids
