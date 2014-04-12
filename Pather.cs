@@ -5,6 +5,12 @@ using System.Text;
 
 class Pather
 {
+
+    public static IEnumerable<Point> AStar(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal)
+    {
+        return AStar(starts, isPassable, isGoal, (p1, p2) => 1, p => 0);
+    }
+
     public static IEnumerable<Point> AStar(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
     {
         var closedSet = new HashSet<Point>();

@@ -26,24 +26,20 @@ public static class Solver
         Func<Point, bool> passable = p => !Bb.DroidLookup.ContainsKey(p);
         Func<Point, bool> patherPassable = p => p.Equals(attacker) || liveTargets.Get(p) || passable(p);
 
-        var path = Pather.AStar(new[] { attacker }, patherPassable, liveTargets.ToFunc(), (p1, p2) => 1, p => 0);
+        var path = Pather.AStar(new[] { attacker }, patherPassable, liveTargets.ToFunc());
         if (!path.Any())
         {
             return;
         }
 
-        var targetPoint = path.Last();
-        MoveUntilInRange(droid, targetPoint, path);
-
-        if (droid.IsInRange(targetPoint))
-        {
-            droid.operate(targetPoint.x, targetPoint.y);
-        }
+        MoveAndAttack(droid, path.Skip(1));
     }
 
-    public static void MoveUntilInRange(Droid droid, Point targetPoint, IEnumerable<Point> path)
+    public static void MoveAndAttack(Droid droid, IEnumerable<Point> path)
     {
-        foreach (var point in path.Skip(1))
+        var targetPoint = path.Last();
+
+        foreach (var point in path)
         {
             if (droid.MovementLeft == 0 || droid.IsInRange(targetPoint))
             {
@@ -51,5 +47,25 @@ public static class Solver
             }
             droid.move(point.x, point.y);
         }
+
+        if (droid.IsInRange(targetPoint))
+        {
+            droid.operate(targetPoint.x, targetPoint.y);
+        }
+    }
+
+    public static void MoveAndAttackSmart(IEnumerable<Point> attackers, BitArray targets)
+    {
+        var droids = attackers.Select(a => Bb.DroidLookup[a]).Where(d => d.AttacksLeft > 0);
+        var droidPoints = droids.Select(d => d.ToPoint());
+        var attackerBits = droidPoints.ToBitArray();
+
+        var targetBits = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
+
+        Func<Point, bool> passable = p => !Bb.DroidLookup.ContainsKey(p);
+        Func<Point, bool> patherPassable = p => attackerBits.Get(p) || targetBits.Get(p) || passable(p);
+
+        var path = Pather.AStar(droidPoints, patherPassable, targetBits.ToFunc());
+
     }
 }
