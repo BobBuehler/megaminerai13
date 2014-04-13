@@ -15,7 +15,6 @@ enum Unit
     HANGAR = 7,
 };
 
-
 /// <summary>
 /// The class implementing gameplay logic.
 /// </summary>
@@ -104,17 +103,8 @@ class AI : BaseAI
                 Console.WriteLine("     Hacker spawned");
             }
         }
-        int x_inc = 1;
-        //If spawned on the right
-        if (playerID() == 1)
-        {
-            x_inc = -1;
-            spawnX = mapWidth() - 1;
-        }
         //Spawn Claw by default
         Unit unit = Unit.CLAW;
-
-        Point spawnHere = new Point(spawnX, spawnY);
         while (CanAfford(unit) && Bb.OurClaws.ToPoints().Count() <= 15)
         {
             SpawnUnit(unit);
