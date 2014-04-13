@@ -77,10 +77,10 @@ class AI : BaseAI
 
         TakeOutTurrets();
 
-        float targetClawRatio = .1f;
-        float targetArcherRatio = .4f;
-        float targetHackerRatio = .4f;
-        float targetTerminatorRatio = .1f;
+        float targetClawRatio = .2f;
+        float targetArcherRatio = .3f;
+        float targetHackerRatio = .3f;
+        float targetTerminatorRatio = .2f;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
@@ -113,6 +113,7 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits.ToPoints().Where(pnt => pnt.IsRepairable()).ToBitArray());
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
         
