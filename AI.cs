@@ -59,6 +59,15 @@ class AI : BaseAI
         return spawned;
     }
 
+    private void PreventTurrets()
+    {
+        //var spawningTurrets = Bb.TheirSpawning.ToPoints().Where(p => (Unit)Bb.TileLookup[p].VariantToAssemble == Unit.TURRET);
+        //foreach (var s in spawningTurrets)
+        //{
+        //    var tile = Bb.TileLookup.G
+        //}
+    }
+
     private void TakeOutTurrets()
     {
         foreach (Point p in Bb.TheirTurrets.ToPoints())
@@ -73,17 +82,19 @@ class AI : BaseAI
 
     public void Spawn()
     {
+        PreventTurrets();
         TakeOutTurrets();
 
-        var units = new HashSet<Unit> { Unit.CLAW, Unit.ARCHER, Unit.HACKER, Unit.REPAIRER, Unit.TERMINATOR };
+        var units = new HashSet<Unit> { Unit.CLAW, Unit.ARCHER, Unit.HACKER, Unit.REPAIRER, Unit.TERMINATOR, Unit.TURRET };
         var ourUnitCounts = units.ToDictionary(u => u, u => 0);
         var theirUnitCounts = units.ToDictionary(u => u, u => 0);
         droids.Where(d => units.Contains((Unit)d.Variant)).ForEach(d => { if (d.Owner == Bb.id) ourUnitCounts[(Unit)d.Variant]++; else theirUnitCounts[(Unit)d.Variant]++; });
         var theirTotal = theirUnitCounts.Sum(kvp => kvp.Value);
+        var isSpawningTurretsSoon = Bb.TheirSpawning.ToPoints().Any(p => (Unit)Bb.TileLookup[p].VariantToAssemble == Unit.TURRET && Bb.TileLookup[p].TurnsUntilAssembled < 10);
 
         float targetClawRatio = theirTotal == 0 ? 1.0f : 0.0f;
         float targetHackerRatio = theirUnitCounts[Unit.HACKER] + theirUnitCounts[Unit.CLAW];
-        float targetArcherRatio = theirUnitCounts[Unit.ARCHER];
+        float targetArcherRatio = theirUnitCounts[Unit.ARCHER] + theirUnitCounts[Unit.TURRET] + (isSpawningTurretsSoon ? 5 : 0);
         float targetTerminatorRatio = theirUnitCounts[Unit.ARCHER] + theirUnitCounts[Unit.TERMINATOR] + theirUnitCounts[Unit.CLAW] + theirUnitCounts[Unit.REPAIRER];
         float targetRepairerRatio = theirUnitCounts[Unit.ARCHER] / 4 + theirUnitCounts[Unit.CLAW] / 4 + ourUnitCounts[Unit.TERMINATOR];
 
@@ -105,9 +116,9 @@ class AI : BaseAI
             SpawnUnit(Unit.CLAW);
             Bb.ReadBoard();
         }
-        if (CanAfford(Unit.ARCHER) && archerCount / unitCount < targetArcherRatio)
+        if (CanAfford(Unit.TERMINATOR) && terminatorCount / unitCount < targetTerminatorRatio)
         {
-            SpawnUnit(Unit.ARCHER);
+            SpawnUnit(Unit.TERMINATOR);
             Bb.ReadBoard();
         }
         if (CanAfford(Unit.HACKER) && hackerCount / unitCount < targetHackerRatio)
@@ -115,9 +126,9 @@ class AI : BaseAI
             SpawnUnit(Unit.HACKER);
             Bb.ReadBoard();
         }
-        if (CanAfford(Unit.TERMINATOR) && terminatorCount / unitCount < targetTerminatorRatio)
+        if (CanAfford(Unit.ARCHER) && archerCount / unitCount < targetArcherRatio)
         {
-            SpawnUnit(Unit.TERMINATOR);
+            SpawnUnit(Unit.ARCHER);
             Bb.ReadBoard();
         }
         if (CanAfford(Unit.REPAIRER) && repairerCount / unitCount < targetRepairerRatio)
@@ -152,14 +163,15 @@ class AI : BaseAI
             Bb.KillHangerCountDown = 0;
         }
         
-        // Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
+        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
+
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
+
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
 
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurHangars);
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits);
-
         Bb.ReadBoard();
         if (Bb.OurTerminators.ToPoints().Any())
         {
