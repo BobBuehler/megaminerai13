@@ -86,4 +86,10 @@ public static class Solver
         var search = new Pather.Search(targets, isPassable, p => false);
         return spawnable.Where(s => search.GScore.ContainsKey(s)).MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
+
+    public static Point FindFastestSpawn(Func<Point, bool> isSpawnable, IEnumerable<Point> targets, int moveSpeed)
+    {
+        var search = new Pather.Search(targets, isPassable, p => false);
+        return search.GScore.Keys.Where(s => isSpawnable(s)).MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
+    }
 }
