@@ -73,27 +73,22 @@ class AI : BaseAI
 
     public void Spawn()
     {
-        var ratios = new Dictionary<Unit, float>();
-    }
+        var units = new HashSet<Unit> { Unit.CLAW, Unit.ARCHER, Unit.HACKER, Unit.REPAIRER, Unit.TERMINATOR };
+        var ourUnitCounts = units.ToDictionary(u => u, u => 0);
+        var theirUnitCounts = units.ToDictionary(u => u, u => 0);
+        droids.Where(d => units.Contains((Unit)d.Variant)).ForEach(d => { if (d.Owner == Bb.id) ourUnitCounts[(Unit)d.Variant]++; else theirUnitCounts[(Unit)d.Variant]++; });
+        var theirTotal = theirUnitCounts.Sum(kvp => kvp.Value);
 
-    /// <summary>
-    /// This function is called each time it is your turn.
-    /// </summary>
-    /// <returns>True to end your turn. False to ask the server for updated information.</returns>
-    public override bool run()
-    {
-        Bb.ReadBoard();
-        Console.WriteLine("Turn: {0}  {1} v {2}  {3} v {4}", turnNumber(), Bb.OurHangars.Count(), Bb.TheirHangars.Count(),
-            Bb.OurHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft),
-            Bb.TheirHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft));
+        float targetClawRatio = theirTotal == 0 ? 1.0f : 0.0f;
+        float targetHackerRatio = theirUnitCounts[Unit.HACKER] + theirUnitCounts[Unit.CLAW];
+        float targetArcherRatio = theirUnitCounts[Unit.HACKER] + theirUnitCounts[Unit.ARCHER];
+        float targetTerminatorRatio = theirUnitCounts[Unit.ARCHER] + theirUnitCounts[Unit.TERMINATOR];
+        float targetRepairerRatio = theirUnitCounts[Unit.ARCHER] / 2 + theirUnitCounts[Unit.CLAW] / 2;
 
-        TakeOutTurrets();
-
-        float targetClawRatio = .0f;
-        float targetArcherRatio = .4f;
-        float targetHackerRatio = .2f;
-        float targetTerminatorRatio = .3f;
-        float targetRepairerRatio = .1f;
+        var total = targetClawRatio + targetHackerRatio + targetArcherRatio + targetTerminatorRatio + targetRepairerRatio;
+        targetHackerRatio /= total;
+        targetArcherRatio /= total;
+        targetTerminatorRatio /= total;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
@@ -127,6 +122,22 @@ class AI : BaseAI
             SpawnUnit(Unit.REPAIRER);
             Bb.ReadBoard();
         }
+    }
+
+    /// <summary>
+    /// This function is called each time it is your turn.
+    /// </summary>
+    /// <returns>True to end your turn. False to ask the server for updated information.</returns>
+    public override bool run()
+    {
+        Bb.ReadBoard();
+        Console.WriteLine("Turn: {0}  {1} v {2}  {3} v {4}", turnNumber(), Bb.OurHangars.Count(), Bb.TheirHangars.Count(),
+            Bb.OurHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft),
+            Bb.TheirHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft));
+
+        TakeOutTurrets();
+
+        Spawn();
 
         int mid = Bb.Width / 2;
         var ourValue = Bb.OurUnits.ToPoints().Where(u => Bb.id == 0 ? u.x > mid : u.x < mid).Sum(p => modelVariants[Bb.DroidLookup[p].Variant].Cost);
