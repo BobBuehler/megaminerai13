@@ -86,9 +86,50 @@ public static class Solver
         }
     }
 
-    public static void MoveAndAttackButDontGetHacked(Droid droid, BitArray targets)
+    public static void MoveCloseTo(Point mover, Point target)
     {
-        
+        var droid = Bb.DroidLookup[mover];
+        var search = new Pather.Search(
+            new Point[] { mover },
+            isPassable,
+            p => false,
+            (p1, p2) => 1,
+            droid.MovementLeft);
+
+        var walkable = search.GScore.Where(kvp => kvp.Value < droid.MovementLeft).Select(kvp => kvp.Key);
+        if (!walkable.Any())
+        {
+            return;
+        }
+
+        var destination = walkable.MinBy(p => p.ManhattanDistance(mover));
+        var steps = Pather.ConstructPath(search.CameFrom, destination).Skip(1);
+
+        foreach (var step in steps)
+        {
+        }
+    }
+
+    public static void TryOperate(Droid attacker)
+    {
+        if (attacker.AttacksLeft > 0)
+        {
+            foreach (var p in attacker.ToPoint().GetPointsInRange(attacker.Range))
+            {
+                //if (p.IsAttackable())
+                //{
+                //    while(attacker.AttacksLeft > 0)
+                //    {
+                //        attacker.operate(
+                //    }
+                //}
+                //Droid target;
+                //if (Bb.DroidLookup.TryGetValue(p, out target))
+                //{
+                //    if (
+                //}
+            }
+        }
     }
 
     public static Point FindFastestSpawn(Func<Point, bool> isSpawnable, IEnumerable<Point> targets, int moveSpeed)
