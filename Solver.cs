@@ -82,6 +82,11 @@ public static class Solver
         }
     }
 
+    public static void MoveAndAttackButDontGetHacked(Droid droid, BitArray targets)
+    {
+        
+    }
+
     public static Point FindFastestSpawn(Func<Point, bool> isSpawnable, IEnumerable<Point> targets, int moveSpeed)
     {
         var search = new Pather.Search(targets, isPassable, p => false);
