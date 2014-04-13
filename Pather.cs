@@ -5,7 +5,6 @@ using System.Text;
 
 class Pather
 {
-
     public static IEnumerable<Point> AStar(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal)
     {
         return AStar(starts, isPassable, isGoal, (p1, p2) => 1, p => 0);
@@ -13,41 +12,7 @@ class Pather
 
     public static IEnumerable<Point> AStar(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
     {
-        var closedSet = new HashSet<Point>();
-        var openSet = new HashSet<Point>(starts);
-        var cameFrom = new Dictionary<Point, Point>();
-
-        var gScore = starts.ToDictionary(s => s, s => 0);
-        var fScore = starts.ToDictionary(s => s, s => gScore[s] + getH(s));
-
-        while (openSet.Any())
-        {
-            var current = openSet.MinBy(p => fScore[p]);
-            if (isGoal(current))
-            {
-                return ConstructPath(cameFrom, current);
-            }
-
-            openSet.Remove(current);
-            closedSet.Add(current);
-            foreach (var n in GetNeighbors(current, isPassable))
-            {
-                if (closedSet.Contains(n))
-                    continue;
-
-                var tentativeG = gScore[current] + getCost(current, n);
-
-                if (!openSet.Contains(n) || tentativeG < gScore[n])
-                {
-                    cameFrom[n] = current;
-                    gScore[n] = tentativeG;
-                    fScore[n] = tentativeG + getH(n);
-                    openSet.Add(n);
-                }
-            }
-        }
-
-        return new Point[] { };
+        return new Search(starts, isPassable, isGoal, getCost, getH).Path;
     }
 
     public static IEnumerable<Point> ConstructPath(Dictionary<Point, Point> cameFrom, Point end)
@@ -75,5 +40,64 @@ class Pather
         };
 
         return neighbors.Where(n => n.IsOnBoard() && isPassable(n));
+    }
+
+    public class Search
+    {
+        public IEnumerable<Point> Path;
+        public HashSet<Point> ClosedSet;
+        public HashSet<Point> OpenSet;
+        public Dictionary<Point, Point> CameFrom;
+        public Dictionary<Point, int> GScore;
+        public Dictionary<Point, int> FScore;
+
+        public Search(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal)
+        {
+            DoSearch(starts, isPassable, isGoal, (p1, p2) => 1, p => 0);
+        }
+
+        public Search(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
+        {
+            DoSearch(starts, isPassable, isGoal, getCost, getH);
+        }
+
+        private void DoSearch(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
+        {
+            ClosedSet = new HashSet<Point>();
+            OpenSet = new HashSet<Point>(starts);
+            CameFrom = new Dictionary<Point, Point>();
+
+            GScore = starts.ToDictionary(s => s, s => 0);
+            FScore = starts.ToDictionary(s => s, s => GScore[s] + getH(s));
+
+            while (OpenSet.Any())
+            {
+                var current = OpenSet.MinBy(p => FScore[p]);
+                if (isGoal(current))
+                {
+                    Path = ConstructPath(CameFrom, current);
+                }
+
+                OpenSet.Remove(current);
+                ClosedSet.Add(current);
+                foreach (var n in GetNeighbors(current, isPassable))
+                {
+                    if (ClosedSet.Contains(n))
+                        continue;
+
+                    var tentativeG = GScore[current] + getCost(current, n);
+
+                    if (!OpenSet.Contains(n) || tentativeG < GScore[n])
+                    {
+                        CameFrom[n] = current;
+                        GScore[n] = tentativeG;
+                        FScore[n] = tentativeG + getH(n);
+                        OpenSet.Add(n);
+                    }
+                }
+            }
+
+            Path = new Point[] { };
+        }
     }
 }

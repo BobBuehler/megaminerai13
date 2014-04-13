@@ -40,16 +40,6 @@ class Bb
     private static int id;
 
     private static BitArray[] allBoards;
-    //= {   OurClaws, TheirClaws,
-    //                                          OurRepairers, TheirRepairers,
-    //                                          OurTurrets, TheirTurrets,
-    //                                          OurTerminators, TheirTerminators,
-    //                                          OurArchers, TheirArchers,
-    //                                          OurHackers, TheirHackers,
-    //                                          OurWalls, TheirWalls,
-    //                                          OurHangars, TheirHangars,
-    //                                          OurSpawning, TheirSpawning
-    //                                      };
 
     public static void Init(AI new_ai)
     {
@@ -97,6 +87,20 @@ class Bb
             OurHangars, TheirHangars,
             OurSpawning, TheirSpawning
         };
+    }
+
+    public static int GetSpawnDelay(Point p)
+    {
+        if (ai.playerID() == 0)
+        {
+            // Left side
+            return 2 * (p.x + 1);
+        }
+        else
+        {
+            // Right side
+            return 2 * (ai.mapWidth() - p.x + 1);
+        }
     }
 
     public static int GetOffset(int x, int y)
