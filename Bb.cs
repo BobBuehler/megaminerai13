@@ -138,7 +138,7 @@ class Bb
 
         DroidLookup.Clear();
 
-        foreach (Droid droid in AI.droids)
+        foreach (Droid droid in AI.droids.Where(d => d.HealthLeft > 0))
         {
             Point p = new Point(droid.X, droid.Y);
             int n = GetOffset(p);

@@ -135,11 +135,11 @@ public static class Solver
         }
     }
 
-    public static void BeSmarter(IEnumerable<Point> attackers, IEnumerable<Point> targets)
+    public static void BeSmarter(IEnumerable<Point> attackers, IEnumerable<Point> targets, Func<Droid, IEnumerable<DroidTurn>, DroidTurn> choose)
     {
         Bb.ReadBoard();
 
-        var validAttackers = attackers.Where(a => Bb.DroidLookup[a].AttacksLeft > 0);
+        var validAttackers = attackers.Where(a => Bb.DroidLookup.ContainsKey(a) && Bb.DroidLookup[a].AttacksLeft > 0);
         if (!validAttackers.Any())
         {
             return;
@@ -154,18 +154,18 @@ public static class Solver
         var attackerBits = validAttackers.ToBitArray();
         var targetBits = validTargets.ToBitArray();
 
-        var rangeSearch = new Pather.Search(
+        var targetRangeSearch = new Pather.Search(
             targets,
             p => isPassable(p) || attackerBits.Get(p) || targetBits.Get(p),
             p => false);
 
-        var reachingAttackers = rangeSearch.GScore.Keys.Where(p => attackerBits.Get(p));
+        var reachingAttackers = targetRangeSearch.GScore.Keys.Where(p => attackerBits.Get(p));
         if (!reachingAttackers.Any())
         {
             return;
         }
 
-        var attacker = reachingAttackers.MinBy((a1, a2) => CompareAttackers(a1, a2, rangeSearch.GScore));
+        var attacker = reachingAttackers.MinBy((a1, a2) => CompareAttackers(a1, a2, targetRangeSearch.GScore));
         var droid = Bb.DroidLookup[attacker];
 
         var walkSearch = new Pather.Search(
@@ -175,14 +175,89 @@ public static class Solver
             (p1, p2) => 1,
             droid.MovementLeft);
 
+        List<DroidTurn> turnChoices = new List<DroidTurn>();
+
         var walkable = walkSearch.GScore.Where(kvp => kvp.Value <= droid.MovementLeft).Select(kvp => kvp.Key);
-        var worthwhile = walkable.Where(p => p.GetPointsInRange(droid.Range).Any(r => targetBits.Get(r)));
-        var destination = worthwhile.MaxBy(p => rangeSearch.GScore[p]);
+        foreach (var destination in walkable)
+        {
+            var path = Pather.ConstructPath(walkSearch.CameFrom, destination).Skip(1);
+            var targetsInRange = destination.GetPointsInRange(droid.Range).Where(p => targetBits.Get(p));
+            var movementLeft = droid.MovementLeft - (path.Count());
+            if (movementLeft > 0)
+            {
+                var nextWalkSearch = new Pather.Search(
+                    new[] { destination },
+                    p => isPassable(p) || p.Equals(attacker),
+                    p => false,
+                    (p1, p2) => 1,
+                    movementLeft);
+                var nextWalkable = nextWalkSearch.GScore.Where(kvp => kvp.Value <= movementLeft).Select(kvp => kvp.Key);
+                foreach (var nextDestination in nextWalkable)
+                {
+                    var fullPath = path.Concat(Pather.ConstructPath(walkSearch.CameFrom, nextDestination).Skip(1));
+                    var turn = new DroidTurn();
+                    turn.Steps = fullPath;
+                    turn.Targets = targetsInRange;
+                    turnChoices.Add(turn);
+                }
+            }
+            else
+            {
+                var turn = new DroidTurn();
+                turn.Steps = path;
+                turn.Targets = targetsInRange;
+                turnChoices.Add(turn);
+            }
+        }
 
-        var path = Pather.ConstructPath(walkSearch.CameFrom, destination);
-        MoveAndAttack(droid, path);
+        Console.WriteLine("{0} {1}", (Unit)droid.Variant, droid.ToPoint());
+        foreach (var turn in turnChoices)
+        {
+            foreach (var step in turn.Steps)
+            {
+                Console.Write(step + "->");
+            }
+            Console.WriteLine(" X" + turn.Targets.Count());
+        }
 
-        BeSmarter(attackers, targets);
+        var choice = choose(droid, turnChoices);
+        choice.Apply(droid);
+        
+        attackerBits.Set(droid.ToPoint(), false);
+
+        BeSmarter(attackerBits.ToPoints(), targets, choose);
+    }
+
+    public class DroidTurn
+    {
+        public IEnumerable<Point> Steps;
+        public IEnumerable<Point> Targets;
+
+        public void Apply(Droid attacker)
+        {
+            foreach (var step in Steps)
+            {
+                TryAttack(attacker);
+                attacker.move(step.x, step.y);
+            }
+            TryAttack(attacker);
+        }
+
+        public void TryAttack(Droid attacker)
+        {
+            if (attacker.AttacksLeft > 0)
+            {
+                var targetsInRange = attacker.ToPoint().GetPointsInRange(attacker.Range).Where(p => Targets.Contains(p));
+                if (targetsInRange.Any())
+                {
+                    var target = targetsInRange.First();
+                    while (attacker.AttacksLeft > 0)
+                    {
+                        attacker.operate(target.x, target.y);
+                    }
+                }
+            }
+        }
     }
 
     public static int CompareAttackers(Point a1, Point a2, Dictionary<Point, int> gScore)

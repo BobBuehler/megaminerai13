@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Collections;
+using System.Collections.Generic;
 
 enum Unit
 {
@@ -76,10 +77,10 @@ class AI : BaseAI
 
         TakeOutTurrets();
 
-        float targetClawRatio = .2f;
-        float targetArcherRatio = .3f;
-        float targetHackerRatio = .3f;
-        float targetTerminatorRatio = .2f;
+        float targetClawRatio = .1f;
+        float targetArcherRatio = .4f;
+        float targetHackerRatio = .4f;
+        float targetTerminatorRatio = .1f;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
@@ -112,10 +113,25 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
-        Solver.MoveAndAttack((new BitArray(Bb.OurClaws)).Or(Bb.OurArchers).Or(Bb.OurTerminators).ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
+        
+        
+        
+        //Solver.BeSmarter(
+        //    (new BitArray(Bb.OurClaws)).Or(Bb.OurArchers).Or(Bb.OurTerminators).ToPoints(),
+        //    Bb.TheirUnits.ToPoints(),
+        //    (droid, turns) => ChooseTurn(droid, turns));
 
         return true;
     }
+
+    // Choose and remove all but your favorite target from your choice
+    private Solver.DroidTurn ChooseTurn(Droid droid, IEnumerable<Solver.DroidTurn> turns)
+    {
+        return turns.MaxBy(t => t.Steps.Count());
+    }
+
+
 
     /// <summary>
     /// This function is called once, before your first turn.

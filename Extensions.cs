@@ -127,7 +127,7 @@ public static class Extensions
             for (int x = center.x - range; x < center.x + range; ++x)
             {
                 var p = new Point(x, y);
-                if (center.IsInRange(range, p))
+                if (p.IsOnBoard() && center.IsInRange(range, p))
                 {
                     yield return p;
                 }
