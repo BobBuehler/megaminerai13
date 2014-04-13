@@ -181,6 +181,7 @@ class AI : BaseAI
 
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirWalls).Not()));
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
 
         Bb.KillHangerCountDown--;
 
