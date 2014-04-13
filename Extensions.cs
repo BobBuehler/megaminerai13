@@ -139,4 +139,34 @@ public static class Extensions
     {
         return point.x >= 0 && point.x < Bb.Width && point.y >= 0 && point.y < Bb.Height;
     }
+
+    public static bool IsHackable(this Point p)
+    {
+        Droid d;
+        if (Bb.DroidLookup.TryGetValue(p, out d))
+        {
+            return IsHackable(d);
+        }
+        return false;
+    }
+
+    public static bool IsHackable(this Droid d)
+    {
+        return d.Owner != Bb.id && d.Hackets < d.HacketsMax && d.HackedTurnsLeft == 0;
+    }
+
+    public static bool IsAttackable(this Point p)
+    {
+        Droid d;
+        if (Bb.DroidLookup.TryGetValue(p, out d))
+        {
+            return IsAttackable(d);
+        }
+        return false;
+    }
+
+    public static bool IsAttackable(this Droid d)
+    {
+        return d.HealthLeft > 0 && ((d.Owner == Bb.id) == (d.HackedTurnsLeft == 0));
+    }
 }
