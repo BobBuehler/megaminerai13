@@ -185,6 +185,19 @@ public static class Extensions
         return false;
     }
 
+    public static bool IsOperatable(this Droid d, Droid target)
+    {
+        if ((Unit)d.Variant == Unit.HACKER)
+        {
+            return IsHackable(target);
+        }
+        if ((Unit)d.Variant == Unit.REPAIRER)
+        {
+            return IsRepairable(target);
+        }
+        return IsAttackable(target);
+    }
+
     public static bool IsSpawnable(this Point p)
     {
         Tile t = Bb.TileLookup[p];
