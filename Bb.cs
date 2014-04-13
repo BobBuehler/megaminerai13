@@ -145,6 +145,13 @@ class Bb
             bool isOurs = (droid.Owner == id) == (droid.HackedTurnsLeft == 0);
             bool isTheirs = !isOurs;
 
+            if (DroidLookup.ContainsKey(p))
+            {
+                Console.WriteLine("Duplicate droid points at {0}!", p);
+                Console.WriteLine("{0} {1}", droid.Id, (Unit)droid.Variant);
+                Console.WriteLine("{0} {1}", DroidLookup[p].Id, (Unit)DroidLookup[p].Variant);
+                continue;
+            }
             DroidLookup.Add(p, droid);
 
             OurUnits.Set(n, isOurs);

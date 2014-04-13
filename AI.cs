@@ -76,18 +76,17 @@ class AI : BaseAI
 
         TakeOutTurrets();
 
-        float targetClawRatio = .3f;
+        float targetClawRatio = .2f;
         float targetArcherRatio = .3f;
         float targetHackerRatio = .3f;
-        float targetTerminatorRatio = .1f;
+        float targetTerminatorRatio = .2f;
 
-        float unitCount = Bb.OurUnits.Count();
+        float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
         int archerCount = Bb.OurArchers.Count();
         int hackerCount = Bb.OurHackers.Count();
         int terminatorCount = Bb.OurTerminators.Count();
 
-        //Spawn Claw by default
         if (CanAfford(Unit.CLAW) && clawCount / unitCount < targetClawRatio)
         {
             SpawnUnit(Unit.CLAW);
