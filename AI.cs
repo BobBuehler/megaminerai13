@@ -90,8 +90,8 @@ class AI : BaseAI
         TakeOutTurrets();
 
         float targetClawRatio = .0f;
-        float targetArcherRatio = .3f;
-        float targetHackerRatio = .3f;
+        float targetArcherRatio = .4f;
+        float targetHackerRatio = .2f;
         float targetTerminatorRatio = .3f;
         float targetRepairerRatio = .1f;
 
@@ -128,6 +128,17 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
+        int mid = Bb.Width / 2;
+        var ourValue = Bb.OurUnits.ToPoints().Where(u => Bb.id == 0 ? u.x > mid : u.x < mid).Sum(p => modelVariants[Bb.DroidLookup[p].Variant].Cost);
+        var theirValue = Bb.TheirUnits.ToPoints().Sum(p => modelVariants[Bb.DroidLookup[p].Variant].Cost) + players[Bb.id == 0 ? 1 : 0].ScrapAmount;
+        if (ourValue < theirValue * 2)
+        {
+            Bb.KillHangerCountDown = 1;
+        }
+        else
+        {
+            Bb.KillHangerCountDown = 0;
+        }
         
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
@@ -137,13 +148,6 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits);
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirWalls).Not()));
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
-        
-        
-        
-        //Solver.BeSmarter(
-        //    (new BitArray(Bb.OurClaws)).Or(Bb.OurArchers).Or(Bb.OurTerminators).ToPoints(),
-        //    Bb.TheirUnits.ToPoints(),
-        //    (droid, turns) => ChooseTurn(droid, turns));
 
         Bb.KillHangerCountDown--;
 
