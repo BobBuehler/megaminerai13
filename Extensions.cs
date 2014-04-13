@@ -170,6 +170,21 @@ public static class Extensions
         return d.HealthLeft > 0 && !((d.Owner == Bb.id) == (d.HackedTurnsLeft == 0));
     }
 
+    public static bool IsRepairable(this Droid d)
+    {
+        return d.Armor < d.MaxArmor && d.Owner == Bb.id && d.HackedTurnsLeft == 0;
+    }
+
+    public static bool IsRepairable(this Point p)
+    {
+        Droid d;
+        if (Bb.DroidLookup.TryGetValue(p, out d))
+        {
+            return IsRepairable(d);
+        }
+        return false;
+    }
+
     public static bool IsSpawnable(this Point p)
     {
         Tile t = Bb.TileLookup[p];
