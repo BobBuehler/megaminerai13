@@ -71,6 +71,11 @@ class AI : BaseAI
         Bb.ReadBoard();
     }
 
+    public void Spawn()
+    {
+        var ratios = new Dictionary<Unit, float>();
+    }
+
     /// <summary>
     /// This function is called each time it is your turn.
     /// </summary>
@@ -130,6 +135,7 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurHangars);
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits);
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirWalls).Not()));
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
         
         

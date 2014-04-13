@@ -14,6 +14,8 @@ class Bb
 
     public static BitArray OurUnits;
     public static BitArray TheirUnits;
+    public static BitArray OurArmy;
+    public static BitArray TheirArmy;
 
     public static BitArray OurClaws;
     public static BitArray TheirClaws;
@@ -196,5 +198,8 @@ class Bb
                     break;
             }
         }
+
+        OurArmy = new BitArray(OurClaws).Or(OurHackers).Or(OurArchers).Or(OurRepairers).Or(OurTerminators);
+        TheirArmy = new BitArray(TheirClaws).Or(TheirHackers).Or(TheirArchers).Or(TheirRepairers).Or(TheirTerminators);
     }
 }
