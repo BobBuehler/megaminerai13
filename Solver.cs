@@ -94,7 +94,7 @@ public static class Solver
             var target = Bb.DroidLookup[targetPoint];
             if ((Unit)target.Variant == Unit.HANGAR && target.HealthLeft <= 0)
             {
-                Bb.KillHangerCountDown = 4;
+                Bb.KillHangerCountDown = 0; // Todo, release the kittens
             }
         }
     }
