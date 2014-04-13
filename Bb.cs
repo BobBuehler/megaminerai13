@@ -35,11 +35,11 @@ class Bb
     public static BitArray OurSpawning;
     public static BitArray TheirSpawning;
 
-    private static AI ai;
-    private static int size;
-    private static int id;
+    public static AI ai;
+    public static int size;
+    public static int id;
 
-    private static BitArray[] allBoards;
+    public static BitArray[] allBoards;
 
     public static void Init(AI new_ai)
     {
@@ -142,7 +142,7 @@ class Bb
         {
             Point p = new Point(droid.X, droid.Y);
             int n = GetOffset(p);
-            bool isOurs = (droid.Owner == id) && (droid.HackedTurnsLeft == 0);
+            bool isOurs = (droid.Owner == id) == (droid.HackedTurnsLeft == 0);
             bool isTheirs = !isOurs;
 
             DroidLookup.Add(p, droid);
