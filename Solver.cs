@@ -99,7 +99,6 @@ public static class Solver
     {
         var search = new Pather.Search(targets, isPassable, p => false);
         var reachable = search.GScore.Keys.Where(s => isSpawnable(s));
-        Console.WriteLine("Reachable spawns " + reachable.Count());
         return reachable.MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
 
