@@ -45,11 +45,19 @@ public static class Solver
         }
         else if ((Unit)attacker.Variant == Unit.REPAIRER)
         {
-            validTargets = targets.ToPoints().Where(t => t.IsHackable()).ToBitArray(); // TODO FIXME IsRepariable
+            validTargets = targets.ToPoints().Where(t => t.IsRepairable()).ToBitArray();
         }
         else
         {
             validTargets = targets.ToPoints().Where(t => t.IsAttackable()).ToBitArray();
+            if (Bb.KillHangerCountDown > 0)
+            {
+                validTargets = validTargets.ToPoints().Where(t =>
+                    {
+                        var droid = Bb.DroidLookup[t];
+                        return !((Unit)droid.Variant == Unit.HANGAR && droid.HealthLeft <= attacker.Attack);
+                    }).ToBitArray();
+            }
         }
 
         Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint()) || validTargets.Get(p);
@@ -83,6 +91,11 @@ public static class Solver
         if (droid.IsInRange(targetPoint))
         {
             droid.operate(targetPoint.x, targetPoint.y);
+            var target = Bb.DroidLookup[targetPoint];
+            if ((Unit)target.Variant == Unit.HANGAR && target.HealthLeft <= 0)
+            {
+                Bb.KillHangerCountDown = 4;
+            }
         }
     }
 

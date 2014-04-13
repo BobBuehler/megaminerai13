@@ -78,20 +78,24 @@ class AI : BaseAI
     public override bool run()
     {
         Bb.ReadBoard();
-        Console.WriteLine("Turn: {0}  {1} v {2}", turnNumber(), Bb.OurHangars.Count(), Bb.TheirHangars.Count());
+        Console.WriteLine("Turn: {0}  {1} v {2}  {3} v {4}", turnNumber(), Bb.OurHangars.Count(), Bb.TheirHangars.Count(),
+            Bb.OurHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft),
+            Bb.TheirHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft));
 
         TakeOutTurrets();
 
         float targetClawRatio = .2f;
         float targetArcherRatio = .3f;
         float targetHackerRatio = .3f;
-        float targetTerminatorRatio = .2f;
+        float targetTerminatorRatio = .1f;
+        float targetRepairerRatio = .1f;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
         int archerCount = Bb.OurArchers.Count();
         int hackerCount = Bb.OurHackers.Count();
         int terminatorCount = Bb.OurTerminators.Count();
+        int repairerCount = Bb.OurRepairers.Count();
 
         if (CanAfford(Unit.CLAW) && clawCount / unitCount < targetClawRatio)
         {
@@ -113,13 +117,19 @@ class AI : BaseAI
             SpawnUnit(Unit.TERMINATOR);
             Bb.ReadBoard();
         }
+        if (CanAfford(Unit.REPAIRER) && repairerCount / unitCount < targetRepairerRatio)
+        {
+            SpawnUnit(Unit.REPAIRER);
+            Bb.ReadBoard();
+        }
 
         
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
-        Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits.ToPoints().Where(pnt => pnt.IsRepairable()).ToBitArray());
+        Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurHangars);
+        Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits);
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
         
         
@@ -128,6 +138,8 @@ class AI : BaseAI
         //    (new BitArray(Bb.OurClaws)).Or(Bb.OurArchers).Or(Bb.OurTerminators).ToPoints(),
         //    Bb.TheirUnits.ToPoints(),
         //    (droid, turns) => ChooseTurn(droid, turns));
+
+        Bb.KillHangerCountDown--;
 
         return true;
     }

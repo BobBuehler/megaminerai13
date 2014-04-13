@@ -172,7 +172,7 @@ public static class Extensions
 
     public static bool IsRepairable(this Droid d)
     {
-        return d.Armor < d.MaxArmor && d.Owner == Bb.id && d.HackedTurnsLeft == 0;
+        return (Unit)d.Variant != Unit.REPAIRER && d.Armor < d.MaxArmor && d.Owner == Bb.id && d.HackedTurnsLeft == 0;
     }
 
     public static bool IsRepairable(this Point p)
