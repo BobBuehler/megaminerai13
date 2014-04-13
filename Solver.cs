@@ -20,35 +20,42 @@ public static class Solver
 
     public static void MoveAndAttack(IEnumerable<Point> attackers, BitArray targets)
     {
-        attackers.ForEach(a => MoveAndAttack(a, targets));
+        Bb.ReadBoard();
+
+        foreach (var attacker in attackers)
+        {
+            var droid = Bb.DroidLookup[attacker];
+            if ((Unit)droid.Variant == Unit.CLAW)
+            {
+                MoveFarthestAndAttack(droid, targets);
+            }
+            else
+            {
+                MoveAndAttack(droid, targets);
+            }
+        }
     }
 
-    public static void MoveAndAttack(Point attacker, BitArray targets)
+    public static void MoveAndAttack(Droid attacker, BitArray targets)
     {
         Bb.ReadBoard();
 
-        if (!Bb.DroidLookup.ContainsKey(attacker))
-        {
-            Console.WriteLine("Attacker not found: " + attacker);
-            return;
-        }
-        var droid = Bb.DroidLookup[attacker];
-        if (droid.AttacksLeft <= 0)
+        if (attacker.AttacksLeft <= 0)
         {
             return;
         }
 
         var liveTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
 
-        Func<Point, bool> patherPassable = p => p.Equals(attacker) || liveTargets.Get(p) || IsPassable(p);
+        Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint()) || liveTargets.Get(p);
 
-        var path = Pather.AStar(new[] { attacker }, patherPassable, liveTargets.ToFunc());
-        if (!path.Any())
+        var path = Pather.AStar(new[] { attacker.ToPoint() }, patherPassable, liveTargets.ToFunc());
+        if (path == null)
         {
             return;
         }
 
-        MoveAndAttack(droid, path.Skip(1));
+        MoveAndAttack(attacker, path.Skip(1));
     }
 
     public static void MoveAndAttack(Droid droid, IEnumerable<Point> path)
@@ -61,6 +68,7 @@ public static class Solver
             {
                 break;
             }
+            Console.WriteLine("Move {0} -> {1}", droid.ToPoint(), point);
             droid.move(point.x, point.y);
         }
 
@@ -91,5 +99,31 @@ public static class Solver
     {
         var search = new Pather.Search(targets, isPassable, p => false);
         return search.GScore.Keys.Where(s => isSpawnable(s)).MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
+    }
+
+    public static void MoveFarthestAndAttack(Droid attacker, BitArray targets)
+    {
+        if (attacker.AttacksLeft == 0)
+        {
+            return;
+        }
+        
+        var liveTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0);
+        Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint());
+
+        var movementSearch = new Pather.Search(new Point[] { attacker.ToPoint() }, patherPassable, p => false, (p1, p2) => 1, attacker.MovementLeft);
+        var walkables = movementSearch.GScore.Keys.Where(p => movementSearch.GScore[p] <= attacker.MovementLeft);
+        var walkablesWithTargets = walkables.Where(p => liveTargets.Any(t => attacker.IsInRange(t)));
+        if (walkablesWithTargets.Any())
+        {
+            var walkTo = walkablesWithTargets.MaxBy(p => movementSearch.GScore[p]);
+            var path = Pather.ConstructPath(movementSearch.CameFrom, walkTo);
+            foreach (var step in path.Skip(1))
+            {
+                attacker.move(step.x, step.y);
+            }
+            var target = liveTargets.First(t => attacker.IsInRange(t));
+            attacker.operate(target.x, target.y);
+        }
     }
 }
