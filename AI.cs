@@ -112,9 +112,7 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
-        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
-        Solver.MoveAndAttack(Bb.OurTerminators.ToPoints(), Bb.TheirUnits);
-        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack((new BitArray(Bb.OurClaws)).Or(Bb.OurArchers).Or(Bb.OurTerminators).ToPoints(), Bb.TheirUnits);
 
         return true;
     }

@@ -6,24 +6,24 @@ using System.Collections;
 
 public static class Extensions
 {
-    public static T MinBy<T, K>(this IEnumerable<T> source, Func<T, K> selector)
+    public static T MinBy<T>(this IEnumerable<T> source, Func<T, T, int> compare)
     {
-        var comparer = Comparer<K>.Default;
-        
         var min = source.First();
-        var minV = selector(min);
 
         foreach (var s in source)
         {
-            var v = selector(s);
-            if (comparer.Compare(v, minV) < 0)
+            if (compare(s, min) < 0)
             {
-                minV = v;
                 min = s;
             }
         }
 
         return min;
+    }
+    public static T MinBy<T, K>(this IEnumerable<T> source, Func<T, K> selector)
+    {
+        var comparer = Comparer<K>.Default;
+        return source.MinBy((s1, s2) => comparer.Compare(selector(s1), selector(s2)));
     }
 
     public static T MaxBy<T, K>(this IEnumerable<T> source, Func<T, K> selector)

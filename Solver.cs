@@ -43,6 +43,10 @@ public static class Solver
         {
             validTargets = targets.ToPoints().Where(t => t.IsHackable()).ToBitArray();
         }
+        else if ((Unit)attacker.Variant == Unit.REPAIRER)
+        {
+            validTargets = targets.ToPoints().Where(t => t.IsHackable()).ToBitArray(); // TODO FIXME IsRepariable
+        }
         else
         {
             validTargets = targets.ToPoints().Where(t => t.IsAttackable()).ToBitArray();
@@ -129,5 +133,68 @@ public static class Solver
             var target = liveTargets.First(t => attacker.IsInRange(t));
             attacker.operate(target.x, target.y);
         }
+    }
+
+    public static void BeSmarter(IEnumerable<Point> attackers, IEnumerable<Point> targets)
+    {
+        Bb.ReadBoard();
+
+        var validAttackers = attackers.Where(a => Bb.DroidLookup[a].AttacksLeft > 0);
+        if (!validAttackers.Any())
+        {
+            return;
+        }
+
+        var validTargets = targets.Where(t => t.IsAttackable());
+        if (!validTargets.Any())
+        {
+            return;
+        }
+
+        var attackerBits = validAttackers.ToBitArray();
+        var targetBits = validTargets.ToBitArray();
+
+        var rangeSearch = new Pather.Search(
+            targets,
+            p => isPassable(p) || attackerBits.Get(p) || targetBits.Get(p),
+            p => false);
+
+        var reachingAttackers = rangeSearch.GScore.Keys.Where(p => attackerBits.Get(p));
+        if (!reachingAttackers.Any())
+        {
+            return;
+        }
+
+        var attacker = reachingAttackers.MinBy((a1, a2) => CompareAttackers(a1, a2, rangeSearch.GScore));
+        var droid = Bb.DroidLookup[attacker];
+
+        var walkSearch = new Pather.Search(
+            new[] { attacker },
+            p => isPassable(p),
+            p => false,
+            (p1, p2) => 1,
+            droid.MovementLeft);
+
+        var walkable = walkSearch.GScore.Where(kvp => kvp.Value <= droid.MovementLeft).Select(kvp => kvp.Key);
+        var worthwhile = walkable.Where(p => p.GetPointsInRange(droid.Range).Any(r => targetBits.Get(r)));
+        var destination = worthwhile.MaxBy(p => rangeSearch.GScore[p]);
+
+        var path = Pather.ConstructPath(walkSearch.CameFrom, destination);
+        MoveAndAttack(droid, path);
+
+        BeSmarter(attackers, targets);
+    }
+
+    public static int CompareAttackers(Point a1, Point a2, Dictionary<Point, int> gScore)
+    {
+        var d1 = Bb.DroidLookup[a1];
+        var d2 = Bb.DroidLookup[a2];
+        var g1 = gScore[a1];
+        var g2 = gScore[a2];
+
+        var closeness1 = g1 - (d1.Range + d1.MovementLeft);
+        var closeness2 = g2 - (d2.Range + d2.MovementLeft);
+
+        return closeness1 <= closeness2 ? -1 : 1;
     }
 }
