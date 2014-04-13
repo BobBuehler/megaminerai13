@@ -93,8 +93,6 @@ class Bb
     {
         if (ai.playerID() == 0)
         {
-            Tile t;
-            
             // Left side
             return 2 * (p.x + 1);
         }
