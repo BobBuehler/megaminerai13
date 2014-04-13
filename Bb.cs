@@ -142,7 +142,7 @@ class Bb
         {
             Point p = new Point(droid.X, droid.Y);
             int n = GetOffset(p);
-            bool isOurs = droid.Owner == id;
+            bool isOurs = (droid.Owner == id) && (droid.HackedTurnsLeft == 0);
             bool isTheirs = !isOurs;
 
             DroidLookup.Add(p, droid);
