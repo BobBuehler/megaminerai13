@@ -126,7 +126,7 @@ public static class Solver
                     {
                         while(droid.AttacksLeft > 0)
                         {
-                            droid.operate(target.X, target.y);
+                            droid.operate(target.X, target.Y);
                         }
                     }
                 }
