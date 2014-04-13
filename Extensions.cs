@@ -26,6 +26,26 @@ public static class Extensions
         return min;
     }
 
+    public static T MaxBy<T, K>(this IEnumerable<T> source, Func<T, K> selector)
+    {
+        var comparer = Comparer<K>.Default;
+
+        var max = source.First();
+        var maxV = selector(max);
+
+        foreach (var s in source)
+        {
+            var v = selector(s);
+            if (comparer.Compare(v, maxV) > 0)
+            {
+                maxV = v;
+                max = s;
+            }
+        }
+
+        return max;
+    }
+
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
         foreach (var s in source)

@@ -117,18 +117,7 @@ class AI : BaseAI
         Point spawnHere = new Point(spawnX, spawnY);
         while (CanAfford(unit) && Bb.OurClaws.ToPoints().Count() <= 15)
         {
-            //if affordable, check spawnable
-            if (spawnHere.y >= mapHeight())
-            {
-                spawnHere.y = 0;
-                spawnHere.x += x_inc;
-            }
-            if (IsSpawnable(spawnHere))
-            {
-                //if spawnable spawn the unit
-                players[playerID()].orbitalDrop(spawnHere.x, spawnHere.y, (int)unit);
-            }
-            spawnHere.y++;
+            SpawnUnit(unit);
             Bb.ReadBoard();
         }
 

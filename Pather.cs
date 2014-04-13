@@ -53,15 +53,20 @@ class Pather
 
         public Search(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal)
         {
-            DoSearch(starts, isPassable, isGoal, (p1, p2) => 1, p => 0);
+            DoSearch(starts, isPassable, isGoal, (p1, p2) => 1, p => 0, Int32.MaxValue);
+        }
+
+        public Search(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, int maxCost)
+        {
+            DoSearch(starts, isPassable, isGoal, getCost, p => 0, Int32.MaxValue);
         }
 
         public Search(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
         {
-            DoSearch(starts, isPassable, isGoal, getCost, getH);
+            DoSearch(starts, isPassable, isGoal, getCost, getH, Int32.MaxValue);
         }
 
-        private void DoSearch(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH)
+        private void DoSearch(IEnumerable<Point> starts, Func<Point, bool> isPassable, Func<Point, bool> isGoal, Func<Point, Point, int> getCost, Func<Point, int> getH, int maxCost)
         {
             ClosedSet = new HashSet<Point>();
             OpenSet = new HashSet<Point>(starts);
@@ -73,9 +78,16 @@ class Pather
             while (OpenSet.Any())
             {
                 var current = OpenSet.MinBy(p => FScore[p]);
+
+                if (GScore[current] > maxCost)
+                {
+                    return;
+                }
+
                 if (isGoal(current))
                 {
                     Path = ConstructPath(CameFrom, current);
+                    return;
                 }
 
                 OpenSet.Remove(current);
@@ -96,8 +108,6 @@ class Pather
                     }
                 }
             }
-
-            Path = new Point[] { };
         }
     }
 }
