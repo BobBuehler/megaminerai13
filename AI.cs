@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Collections;
 
 enum Unit
 {
@@ -43,15 +44,16 @@ class AI : BaseAI
         return modelVariants[(int)u].Cost <= players[playerID()].ScrapAmount;
     }
 
-    private void SpawnUnit(Unit u)
+    private bool SpawnUnit(Unit u)
     {
         //Find best spawning spot, p
         var spawnspot = Solver.FindFastestSpawn(p => IsSpawnable(p), Bb.TheirUnits.ToPoints(), modelVariants[(int) u].MaxMovement);
-        
+        var spawned = false;
         if( IsSpawnable(spawnspot) && CanAfford(u) )
         {
-            players[playerID()].orbitalDrop(spawnspot.x, spawnspot.y, (int)u);
+            spawned = players[playerID()].orbitalDrop(spawnspot.x, spawnspot.y, (int)u);
         }
+        return spawned;
     }
 
     private bool TakeOutTurrets()
@@ -76,30 +78,50 @@ class AI : BaseAI
     /// <returns>True to end your turn. False to ask the server for updated information.</returns>
     public override bool run()
     {
-        Console.WriteLine("Turn: " + turnNumber());
-        
         Bb.ReadBoard();
+
+        int p0hangars;
+        int p1hangars;
+
+        if (playerID() == 0)
+        {
+            p0hangars = Bb.OurHangars.ToPoints().Count();
+            p1hangars = Bb.TheirHangars.ToPoints().Count();
+        }
+        else
+        {
+            p1hangars = Bb.OurHangars.ToPoints().Count();
+            p0hangars = Bb.TheirHangars.ToPoints().Count();
+        }
+
+        Console.WriteLine("Turn: " + turnNumber() + ";  P0 = " + p0hangars + "; P1 = " + p1hangars);
+        
 
         if (!TakeOutTurrets())
         {
-            SpawnUnit(Unit.HACKER);
+            if (SpawnUnit(Unit.HACKER))
+            {
+                Console.WriteLine("     Hacker spawned");
+            }
         }
-
+        int x_inc = 1;
         //If spawned on the right
         if (playerID() == 1)
         {
+            x_inc = -1;
             spawnX = mapWidth() - 1;
         }
-        Point spawnHere = new Point(spawnX, spawnY);
         //Spawn Claw by default
         Unit unit = Unit.CLAW;
-        while (CanAfford(unit))
+
+        Point spawnHere = new Point(spawnX, spawnY);
+        while (CanAfford(unit) && Bb.OurClaws.ToPoints().Count() <= 15)
         {
-            //if afford it, check 
+            //if affordable, check spawnable
             if (spawnHere.y >= mapHeight())
             {
                 spawnHere.y = 0;
-                spawnHere.x++;
+                spawnHere.x += x_inc;
             }
             if (IsSpawnable(spawnHere))
             {
@@ -110,12 +132,18 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
+        //BitArray attackers = new BitArray(Bb.TheirUnits);
+        //attackers.And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not());
+
+        //Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), attackers);
+        Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
+        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
 
         return true;
     }
