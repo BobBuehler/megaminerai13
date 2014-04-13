@@ -25,15 +25,7 @@ public static class Solver
         foreach (var attacker in attackers)
         {
             var droid = Bb.DroidLookup[attacker];
-            if ((Unit)droid.Variant == Unit.CLAW)
-            {
-                // MoveFarthestAndAttack(droid, targets);
-                MoveAndAttack(droid, targets);
-            }
-            else
-            {
-                MoveAndAttack(droid, targets);
-            }
+            MoveAndAttack(droid, targets);
         }
     }
 
@@ -46,14 +38,27 @@ public static class Solver
             return;
         }
 
-        var liveTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
+        BitArray validTargets;
+        if ((Unit)attacker.Variant == Unit.HACKER)
+        {
+            validTargets = targets.ToPoints().Where(t => t.IsHackable()).ToBitArray();
+        }
+        else
+        {
+            validTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
+        }
 
-        Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint()) || liveTargets.Get(p);
+        Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint()) || validTargets.Get(p);
 
-        var path = Pather.AStar(new[] { attacker.ToPoint() }, patherPassable, liveTargets.ToFunc());
+        var path = Pather.AStar(new[] { attacker.ToPoint() }, patherPassable, validTargets.ToFunc());
         if (path == null)
         {
+            Console.WriteLine("Couldn't reach any targets from attacker " + attacker.Id);
             return;
+        }
+        if (path.Count() < 2)
+        {
+            Console.WriteLine("Bad path from attacker " + attacker.Id);
         }
 
         MoveAndAttack(attacker, path.Skip(1));
@@ -75,24 +80,7 @@ public static class Solver
         if (droid.IsInRange(targetPoint))
         {
             droid.operate(targetPoint.x, targetPoint.y);
-
-            if (droid.MovementLeft > 0)
-            {
-                Bb.ReadBoard();
-                var neighbors = Pather.GetNeighbors(droid.ToPoint(), isPassable);
-                foreach (var n in neighbors)
-                {
-                    droid.move(n.x, n.y);
-                    break;
-                }
-            }
         }
-    }
-
-    public static Point FindFastestSpawn(IEnumerable<Point> spawnable, IEnumerable<Point> targets, int moveSpeed)
-    {
-        var search = new Pather.Search(targets, isPassable, p => false);
-        return spawnable.Where(s => search.GScore.ContainsKey(s)).MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
 
     public static Point FindFastestSpawn(Func<Point, bool> isSpawnable, IEnumerable<Point> targets, int moveSpeed)
