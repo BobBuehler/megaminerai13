@@ -87,6 +87,7 @@ class Pather
                 if (isGoal(current))
                 {
                     Path = ConstructPath(CameFrom, current);
+                    return;
                 }
 
                 OpenSet.Remove(current);
