@@ -53,20 +53,16 @@ class AI : BaseAI
         return spawned;
     }
 
-    private bool TakeOutTurrets()
+    private void TakeOutTurrets()
     {
-        bool spawned = false;
         foreach (Point p in Bb.TheirTurrets.ToPoints())
         {
             if (CanAfford(Unit.CLAW) && IsSpawnable(p))
             {
-                spawned = true;
-                Console.WriteLine(" Turn " + turnNumber() + ": Dropping Claw onto turret at (" + p.x + ", " + p.y + ")!");
                 players[playerID()].orbitalDrop(p.x, p.y, (int)Unit.CLAW);
-                Bb.ReadBoard();
             }
         }
-        return spawned;
+        Bb.ReadBoard();
     }
 
     /// <summary>
@@ -76,63 +72,50 @@ class AI : BaseAI
     public override bool run()
     {
         Bb.ReadBoard();
+        Console.WriteLine("Turn: {0}  {1} v {2}", turnNumber(), Bb.OurHangars.Count(), Bb.TheirHangars.Count());
 
-        var p0hangars = "; ";
-        var p1hangars = "; ";
+        TakeOutTurrets();
 
-        if (playerID() == 0)
-        {
-            p0hangars += "OurHangar = " + Bb.OurHangars.ToPoints().Count();
-            p1hangars += "TheirHangar = " + Bb.TheirHangars.ToPoints().Count();
-        }
-        else
-        {
-            p0hangars += "TheirHangar = " + Bb.OurHangars.ToPoints().Count();
-            p1hangars += "OurHangar = " + Bb.TheirHangars.ToPoints().Count();
-        }
+        float targetClawRatio = .3f;
+        float targetArcherRatio = .3f;
+        float targetHackerRatio = .3f;
+        float targetTerminatorRatio = .1f;
 
-        Console.WriteLine("Turn: " + turnNumber() + p0hangars + p1hangars);
-        
+        float unitCount = Bb.OurUnits.Count();
+        int clawCount = Bb.OurClaws.Count();
+        int archerCount = Bb.OurArchers.Count();
+        int hackerCount = Bb.OurHackers.Count();
+        int terminatorCount = Bb.OurTerminators.Count();
 
-        if (!TakeOutTurrets())
-        {
-            if (SpawnUnit(Unit.HACKER))
-            {
-                Console.WriteLine("     Hacker spawned");
-            }
-        }
         //Spawn Claw by default
-        Unit unit = Unit.CLAW;
-        while (CanAfford(unit) && Bb.OurClaws.ToPoints().Count() <= 15)
+        if (CanAfford(Unit.CLAW) && clawCount / unitCount < targetClawRatio)
         {
-            SpawnUnit(unit);
+            SpawnUnit(Unit.CLAW);
+            Bb.ReadBoard();
+        }
+        if (CanAfford(Unit.ARCHER) && archerCount / unitCount < targetArcherRatio)
+        {
+            SpawnUnit(Unit.ARCHER);
+            Bb.ReadBoard();
+        }
+        if (CanAfford(Unit.HACKER) && hackerCount / unitCount < targetHackerRatio)
+        {
+            SpawnUnit(Unit.HACKER);
+            Bb.ReadBoard();
+        }
+        if (CanAfford(Unit.TERMINATOR) && terminatorCount / unitCount < targetTerminatorRatio)
+        {
+            SpawnUnit(Unit.TERMINATOR);
             Bb.ReadBoard();
         }
 
         
-        // Move hackers first so we can move other units this turn
-        //Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not()));
-        if (Bb.OurHackers.ToPoints().Any())
-        {
-            if (Bb.TheirHackers.ToPoints().Any())
-            {
-                // Prioritize hacking enemy hackers
-                Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
-            }
-            else
-            {
-                // Otherwise hack any other hackable enemies
-                Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
-            }
-        }
-        Bb.ReadBoard();
-
+        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
+        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
-        Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
-        Bb.ReadBoard();
-        Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirUnits);
-        Bb.ReadBoard();
+        Solver.MoveAndAttack(Bb.OurTerminators.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
 
         return true;
     }

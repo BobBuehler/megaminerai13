@@ -169,4 +169,23 @@ public static class Extensions
     {
         return d.HealthLeft > 0 && !((d.Owner == Bb.id) == (d.HackedTurnsLeft == 0));
     }
+
+    public static bool IsSpawnable(this Point p)
+    {
+        Tile t = Bb.TileLookup[p];
+        return t.TurnsUntilAssembled > 0 && !Bb.OurHangars.Get(p) && !Bb.OurTurrets.Get(p) && !Bb.TheirHangars.Get(p);
+    }
+
+    public static int Count(this BitArray bits)
+    {
+        int count = 0;
+        for (int i = 0; i < bits.Count; ++i)
+        {
+            if (bits[i])
+            {
+                ++count;
+            }
+        }
+        return count;
+    }
 }
