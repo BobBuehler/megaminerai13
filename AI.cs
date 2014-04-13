@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 enum Unit
@@ -42,17 +43,31 @@ class AI : BaseAI
         return modelVariants[(int)u].Cost <= players[playerID()].ScrapAmount;
     }
 
-    private void TakeOutTurrets()
+    private void SpawnUnit(Unit u)
     {
+        //Find best spawning spot, p
+        var spawnspot = Solver.FindFastestSpawn(p => IsSpawnable(p), Bb.TheirUnits.ToPoints(), modelVariants[(int) u].MaxMovement);
+        
+        if( IsSpawnable(p) && CanAfford(u) )
+        {
+            players[playerID()].orbitalDrop(spawnspot.x, spawnspot.y, (int)u);
+        }
+    }
+
+    private bool TakeOutTurrets()
+    {
+        bool spawned = false;
         foreach (Point p in Bb.TheirTurrets.ToPoints())
         {
             if (CanAfford(Unit.CLAW) && IsSpawnable(p))
             {
-                Console.WriteLine("Turn " + turnNumber() + ": Dropping Claw onto turret at (" + p.x + ", " + p.y + ")!");
+                spawned = true;
+                Console.WriteLine(" Turn " + turnNumber() + ": Dropping Claw onto turret at (" + p.x + ", " + p.y + ")!");
                 players[playerID()].orbitalDrop(p.x, p.y, (int)Unit.CLAW);
                 Bb.ReadBoard();
             }
         }
+        return spawned;
     }
 
     /// <summary>
@@ -64,8 +79,11 @@ class AI : BaseAI
         Console.WriteLine("Turn: " + turnNumber());
         
         Bb.ReadBoard();
-        
-        TakeOutTurrets();
+
+        if (!TakeOutTurrets())
+        {
+            SpawnUnit(Unit.HACKER);
+        }
 
         //If spawned on the right
         if (playerID() == 1)
@@ -73,18 +91,27 @@ class AI : BaseAI
             spawnX = mapWidth() - 1;
         }
         Point spawnHere = new Point(spawnX, spawnY);
+        //Spawn Claw by default
         Unit unit = Unit.CLAW;
-        while (IsSpawnable(spawnHere) && CanAfford(unit) && spawnHere.y < mapHeight())
+        while (CanAfford(unit))
         {
-            //spawn the claw
-            players[playerID()].orbitalDrop(spawnHere.x, spawnHere.y, (int)unit);
+            //if afford it, check 
+            if (spawnHere.y >= mapHeight())
+            {
+                spawnHere.y = 0;
+                spawnHere.x++;
+            }
+            if (IsSpawnable(spawnHere))
+            {
+                //if spawnable spawn the unit
+                players[playerID()].orbitalDrop(spawnHere.x, spawnHere.y, (int)unit);
+            }
             spawnHere.y++;
             Bb.ReadBoard();
         }
 
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
-
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirUnits);
