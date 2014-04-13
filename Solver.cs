@@ -45,7 +45,7 @@ public static class Solver
         }
         else
         {
-            validTargets = targets.ToPoints().Where(p => Bb.DroidLookup[p].HealthLeft > 0).ToBitArray();
+            validTargets = targets.ToPoints().Where(t => t.IsAttackable()).ToBitArray();
         }
 
         Func<Point, bool> patherPassable = p => IsPassable(p) || p.Equals(attacker.ToPoint()) || validTargets.Get(p);
@@ -53,7 +53,6 @@ public static class Solver
         var path = Pather.AStar(new[] { attacker.ToPoint() }, patherPassable, validTargets.ToFunc());
         if (path == null)
         {
-            Console.WriteLine("Couldn't reach any targets from attacker " + attacker.Id);
             return;
         }
         if (path.Count() < 2)
@@ -87,6 +86,11 @@ public static class Solver
     {
         var search = new Pather.Search(targets, isPassable, p => false);
         var reachable = search.GScore.Keys.Where(s => isSpawnable(s));
+        if (!reachable.Any())
+        {
+            var spawnables = Enumerable.Range(0, 40).SelectMany(x => Enumerable.Range(0, 20).Select(y => new Point(x, y))).Where(p => isSpawnable(p));
+            spawnables.MinBy(s => Bb.GetSpawnDelay(s));
+        }
         return reachable.MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
 
