@@ -46,8 +46,13 @@ class AI : BaseAI
     {
         //Find best spawning spot, p
         var spawnspot = Solver.FindFastestSpawn(p => IsSpawnable(p), Bb.TheirUnits.ToPoints(), modelVariants[(int) u].MaxMovement);
+        if (!spawnspot.IsOnBoard())
+        {
+            return false;
+        }
+
         var spawned = false;
-        if( IsSpawnable(spawnspot) && CanAfford(u) )
+        if(IsSpawnable(spawnspot) && CanAfford(u) )
         {
             spawned = players[playerID()].orbitalDrop(spawnspot.x, spawnspot.y, (int)u);
         }

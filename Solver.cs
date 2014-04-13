@@ -140,8 +140,7 @@ public static class Solver
         var reachable = search.GScore.Keys.Where(s => isSpawnable(s));
         if (!reachable.Any())
         {
-            var spawnables = Enumerable.Range(0, 40).SelectMany(x => Enumerable.Range(0, 20).Select(y => new Point(x, y))).Where(p => isSpawnable(p));
-            spawnables.MinBy(s => Bb.GetSpawnDelay(s));
+            return new Point(-1, -1);
         }
         return reachable.MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
