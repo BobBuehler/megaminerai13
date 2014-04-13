@@ -167,6 +167,6 @@ public static class Extensions
 
     public static bool IsAttackable(this Droid d)
     {
-        return d.HealthLeft > 0 && ((d.Owner == Bb.id) == (d.HackedTurnsLeft == 0));
+        return d.HealthLeft > 0 && !((d.Owner == Bb.id) == (d.HackedTurnsLeft == 0));
     }
 }
