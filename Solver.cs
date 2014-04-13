@@ -27,7 +27,8 @@ public static class Solver
             var droid = Bb.DroidLookup[attacker];
             if ((Unit)droid.Variant == Unit.CLAW)
             {
-                MoveFarthestAndAttack(droid, targets);
+                // MoveFarthestAndAttack(droid, targets);
+                MoveAndAttack(droid, targets);
             }
             else
             {
@@ -68,7 +69,6 @@ public static class Solver
             {
                 break;
             }
-            Console.WriteLine("Move {0} -> {1}", droid.ToPoint(), point);
             droid.move(point.x, point.y);
         }
 
@@ -98,7 +98,9 @@ public static class Solver
     public static Point FindFastestSpawn(Func<Point, bool> isSpawnable, IEnumerable<Point> targets, int moveSpeed)
     {
         var search = new Pather.Search(targets, isPassable, p => false);
-        return search.GScore.Keys.Where(s => isSpawnable(s)).MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
+        var reachable = search.GScore.Keys.Where(s => isSpawnable(s));
+        Console.WriteLine("Reachable spawns " + reachable.Count());
+        return reachable.MinBy(s => search.GScore[s] + Bb.GetSpawnDelay(s) * moveSpeed);
     }
 
     public static void MoveFarthestAndAttack(Droid attacker, BitArray targets)
@@ -113,13 +115,19 @@ public static class Solver
 
         var movementSearch = new Pather.Search(new Point[] { attacker.ToPoint() }, patherPassable, p => false, (p1, p2) => 1, attacker.MovementLeft);
         var walkables = movementSearch.GScore.Keys.Where(p => movementSearch.GScore[p] <= attacker.MovementLeft);
-        var walkablesWithTargets = walkables.Where(p => liveTargets.Any(t => attacker.IsInRange(t)));
+        var walkablesWithTargets = walkables.Where(p => liveTargets.Any(t => p.IsInRange(attacker.Range, t)));
+
+        Console.WriteLine("MoveFarthestAndAttack " + attacker.ToPoint());
+        Console.WriteLine("Walkables: " + walkables.Count());
+        Console.WriteLine("WalkablesWithTargets: " + walkablesWithTargets.Count());
+
         if (walkablesWithTargets.Any())
         {
             var walkTo = walkablesWithTargets.MaxBy(p => movementSearch.GScore[p]);
             var path = Pather.ConstructPath(movementSearch.CameFrom, walkTo);
             foreach (var step in path.Skip(1))
             {
+                Console.WriteLine("Move {0} -> {1}", attacker.ToPoint(), step);
                 attacker.move(step.x, step.y);
             }
             var target = liveTargets.First(t => attacker.IsInRange(t));
