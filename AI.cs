@@ -89,10 +89,10 @@ class AI : BaseAI
 
         TakeOutTurrets();
 
-        float targetClawRatio = .2f;
+        float targetClawRatio = .0f;
         float targetArcherRatio = .3f;
         float targetHackerRatio = .3f;
-        float targetTerminatorRatio = .1f;
+        float targetTerminatorRatio = .3f;
         float targetRepairerRatio = .1f;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
