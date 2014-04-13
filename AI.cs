@@ -80,21 +80,21 @@ class AI : BaseAI
     {
         Bb.ReadBoard();
 
-        int p0hangars;
-        int p1hangars;
+        var p0hangars = "; ";
+        var p1hangars = "; ";
 
         if (playerID() == 0)
         {
-            p0hangars = Bb.OurHangars.ToPoints().Count();
-            p1hangars = Bb.TheirHangars.ToPoints().Count();
+            p0hangars += "OurHangar = " + Bb.OurHangars.ToPoints().Count();
+            p1hangars += "TheirHangar = " + Bb.TheirHangars.ToPoints().Count();
         }
         else
         {
-            p1hangars = Bb.OurHangars.ToPoints().Count();
-            p0hangars = Bb.TheirHangars.ToPoints().Count();
+            p0hangars += "TheirHangar = " + Bb.OurHangars.ToPoints().Count();
+            p1hangars += "OurHangar = " + Bb.TheirHangars.ToPoints().Count();
         }
 
-        Console.WriteLine("Turn: " + turnNumber() + ";  P0 = " + p0hangars + "; P1 = " + p1hangars);
+        Console.WriteLine("Turn: " + turnNumber() + p0hangars + p1hangars);
         
 
         if (!TakeOutTurrets())
@@ -121,10 +121,10 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
-        //BitArray attackers = new BitArray(Bb.TheirUnits);
-        //attackers.And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not());
-
-        //Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), attackers);
+        BitArray attackers = new BitArray(Bb.TheirUnits);
+        attackers.And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not());
+        Bb.ReadBoard();
+        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), attackers);
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
@@ -132,7 +132,6 @@ class AI : BaseAI
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
-        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
 
         return true;
     }
