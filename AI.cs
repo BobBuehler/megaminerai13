@@ -20,8 +20,6 @@ enum Unit
 /// </summary>
 class AI : BaseAI
 {
-    int spawnX = 0, spawnY = 0;
-
     public override string username()
     {
         return "Needs Review";
@@ -111,11 +109,24 @@ class AI : BaseAI
             Bb.ReadBoard();
         }
 
-        BitArray attackers = new BitArray(Bb.TheirUnits);
-        attackers.And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not());
+        
+        // Move hackers first so we can move other units this turn
+        //Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirHangars).Not()).And(new BitArray(Bb.TheirWalls).Not()));
+        if (Bb.OurHackers.ToPoints().Any())
+        {
+            if (Bb.TheirHackers.ToPoints().Any())
+            {
+                // Prioritize hacking enemy hackers
+                Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
+            }
+            else
+            {
+                // Otherwise hack any other hackable enemies
+                Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
+            }
+        }
         Bb.ReadBoard();
-        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), attackers);
-        Bb.ReadBoard();
+
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Bb.ReadBoard();
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
@@ -154,8 +165,6 @@ class AI : BaseAI
                     }
                     if (!hangarPresent)
                     {
-                        spawnX = tiles[i].X;
-                        spawnY = tiles[i].Y;
                         found = true;
                         break;
                     }
