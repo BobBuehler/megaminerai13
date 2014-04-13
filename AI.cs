@@ -113,6 +113,7 @@ class AI : BaseAI
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
+        Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits.ToPoints().Where(pnt => pnt.IsRepairable()).ToBitArray());
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
         
         
