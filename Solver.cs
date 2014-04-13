@@ -101,6 +101,12 @@ public static class Solver
 
     public static void MoveCloseTo(Point mover, Point target)
     {
+        Bb.ReadBoard();
+        if (!Bb.DroidLookup.ContainsKey(mover))
+        {
+            return;
+        }
+
         var droid = Bb.DroidLookup[mover];
         var search = new Pather.Search(
             new Point[] { mover },
@@ -115,7 +121,7 @@ public static class Solver
             return;
         }
 
-        var destination = walkable.MinBy(p => p.ManhattanDistance(mover));
+        var destination = walkable.MinBy(p => p.ManhattanDistance(target));
         var steps = Pather.ConstructPath(search.CameFrom, destination).Skip(1);
 
         foreach (var step in steps)

@@ -73,6 +73,8 @@ class AI : BaseAI
 
     public void Spawn()
     {
+        TakeOutTurrets();
+
         var units = new HashSet<Unit> { Unit.CLAW, Unit.ARCHER, Unit.HACKER, Unit.REPAIRER, Unit.TERMINATOR };
         var ourUnitCounts = units.ToDictionary(u => u, u => 0);
         var theirUnitCounts = units.ToDictionary(u => u, u => 0);
@@ -81,14 +83,15 @@ class AI : BaseAI
 
         float targetClawRatio = theirTotal == 0 ? 1.0f : 0.0f;
         float targetHackerRatio = theirUnitCounts[Unit.HACKER] + theirUnitCounts[Unit.CLAW];
-        float targetArcherRatio = theirUnitCounts[Unit.HACKER] + theirUnitCounts[Unit.ARCHER];
-        float targetTerminatorRatio = theirUnitCounts[Unit.ARCHER] + theirUnitCounts[Unit.TERMINATOR];
-        float targetRepairerRatio = theirUnitCounts[Unit.ARCHER] / 2 + theirUnitCounts[Unit.CLAW] / 2;
+        float targetArcherRatio = theirUnitCounts[Unit.ARCHER];
+        float targetTerminatorRatio = theirUnitCounts[Unit.ARCHER] + theirUnitCounts[Unit.TERMINATOR] + theirUnitCounts[Unit.CLAW] + theirUnitCounts[Unit.REPAIRER];
+        float targetRepairerRatio = theirUnitCounts[Unit.ARCHER] / 4 + theirUnitCounts[Unit.CLAW] / 4 + ourUnitCounts[Unit.TERMINATOR];
 
         var total = targetClawRatio + targetHackerRatio + targetArcherRatio + targetTerminatorRatio + targetRepairerRatio;
         targetHackerRatio /= total;
         targetArcherRatio /= total;
         targetTerminatorRatio /= total;
+        targetRepairerRatio /= total;
 
         float unitCount = Bb.OurUnits.Count() - Bb.OurHangars.Count() - Bb.OurTurrets.Count() - Bb.OurWalls.Count() + .0001f;
         int clawCount = Bb.OurClaws.Count();
@@ -135,8 +138,6 @@ class AI : BaseAI
             Bb.OurHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft),
             Bb.TheirHangars.ToPoints().Sum(p => Bb.DroidLookup[p].HealthLeft));
 
-        TakeOutTurrets();
-
         Spawn();
 
         int mid = Bb.Width / 2;
@@ -151,12 +152,21 @@ class AI : BaseAI
             Bb.KillHangerCountDown = 0;
         }
         
-        Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
+        // Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirHackers);
         Solver.MoveAndAttack(Bb.OurHackers.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurTurrets.ToPoints(), Bb.TheirUnits);
         Solver.MoveAndAttack(Bb.OurClaws.ToPoints(), Bb.TheirHangars);
+
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurHangars);
         Solver.MoveAndAttack(Bb.OurRepairers.ToPoints(), Bb.OurUnits);
+
+        Bb.ReadBoard();
+        if (Bb.OurTerminators.ToPoints().Any())
+        {
+            var saveMe = Bb.OurTerminators.ToPoints().MaxBy(t => Bb.GetSpawnDelay(t));
+            Bb.OurRepairers.ToPoints().ForEach(p => Solver.MoveCloseTo(p, saveMe));
+        }
+
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), new BitArray(Bb.TheirUnits).And(new BitArray(Bb.TheirWalls).Not()));
         Solver.MoveAndAttack(Bb.OurUnits.ToPoints(), Bb.TheirUnits);
 

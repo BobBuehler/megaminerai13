@@ -40,7 +40,9 @@ class Bb
     public static AI ai;
     public static int size;
     public static int id;
+
     public static int KillHangerCountDown = 0;
+    public static bool CrossTheLine = false;
 
     public static BitArray[] allBoards;
 
