@@ -107,27 +107,29 @@ public static class Solver
 
         foreach (var step in steps)
         {
+            TryOperate(droid);
+            droid.move(step.x, step.y);
         }
+        TryOperate(droid);
     }
 
-    public static void TryOperate(Droid attacker)
+    public static void TryOperate(Droid droid)
     {
-        if (attacker.AttacksLeft > 0)
+        if (droid.AttacksLeft > 0)
         {
-            foreach (var p in attacker.ToPoint().GetPointsInRange(attacker.Range))
+            foreach (var p in droid.ToPoint().GetPointsInRange(droid.Range))
             {
-                //if (p.IsAttackable())
-                //{
-                //    while(attacker.AttacksLeft > 0)
-                //    {
-                //        attacker.operate(
-                //    }
-                //}
-                //Droid target;
-                //if (Bb.DroidLookup.TryGetValue(p, out target))
-                //{
-                //    if (
-                //}
+                Droid target;
+                if (Bb.DroidLookup.TryGetValue(p, out target))
+                {
+                    if (droid.IsOperatable(target))
+                    {
+                        while(droid.AttacksLeft > 0)
+                        {
+                            droid.operate(target.X, target.y);
+                        }
+                    }
+                }
             }
         }
     }
